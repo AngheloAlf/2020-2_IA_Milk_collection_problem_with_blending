@@ -1,94 +1,86 @@
 #include "instance.hpp"
 
-#include <stdio.h>
-#include <vector>
-
-#include "truck.hpp"
-#include "milk_type.hpp"
-#include "node.hpp"
-
-
-union milkdata{
-    long quot;
-    double prof;
-};
 
 Instance::Instance(char *filename){
     FILE *arch = fopen(filename, "r");
 
-    /** Trucks **/
-    long trucks_amount;
-    fscanf(arch, "%ld", &trucks_amount);
-
-    std::vector<Truck> trucks_list;
-    trucks_list.reserve(trucks_amount);
-    for(long i = 0; i < trucks_amount; ++i){
-        long capacity;
-        fscanf(arch, "%ld", &capacity);
-        trucks_list.emplace_back(capacity);
-    }
-    /** Trucks: end **/
-
-    /** Milk types **/
-    long milk_types_amount;
-    fscanf(arch, "%ld", &milk_types_amount);
-
-    std::vector<milkdata> milkdata_list;
-    milkdata_list.reserve(milk_types_amount*2);
-    for(long i = 0; i < milk_types_amount; ++i){
-        union milkdata data;
-        fscanf(arch, "%ld", &data.quot);
-        milkdata_list.emplace_back(data);
-    }
-    for(long i = milk_types_amount; i < milk_types_amount*2; ++i){
-        union milkdata data;
-        fscanf(arch, "%lf", &data.prof);
-        milkdata_list.emplace_back(data);
-    }
-
-    char milk_type = 'A';
-    std::vector<MilkType> milk_list;
-    milk_list.reserve(milk_types_amount);
-    for(long i = 0; i < milk_types_amount; ++i){
-        milk_list.emplace_back(milk_type, milkdata_list.at(i).quot, milkdata_list.at(i+milk_types_amount).prof);
-        ++milk_type;
-    }
-    /** Milk types: end **/
-
-    /** Nodes **/
-    long nodes_amount;
-    fscanf(arch, "%ld", &nodes_amount);
-
-    std::vector<Node> nodes_list;
-    nodes_list.reserve(nodes_amount);
-    for(long i = 0; i < nodes_amount; ++i){
-        long id, x, y, amountProduced;
-        char typeProduced;
-        fscanf(arch, "%ld %ld %ld %c %ld", &id, &x, &y, &typeProduced, &amountProduced);
-        nodes_list.emplace_back(id, x, y, typeProduced, amountProduced);
-    }
-    /** Nodes: end **/
+    readTrucks(arch);
+    readMilk(arch);
+    readNodes(arch);
 
     fclose(arch);
+    
+}
 
-    long i = 0;
-    printf("\n");
-    for(auto &truck: trucks_list){
+
+void Instance::print(){
+    for(auto &truck: trucksList){
         truck.print();
         printf("\n");
     }
     printf("\n");
 
-    for(auto &milk: milk_list){
+    for(auto &milk: milkList){
         milk.print();
         printf("\n");
     }
     printf("\n");
 
-    for(auto &node: nodes_list){
+    for(auto &node: nodesList){
         node.print();
         printf("\n");
     }
     printf("\n");
-    
 }
+
+
+void Instance::readTrucks(FILE *arch){
+    fscanf(arch, "%ld", &trucksAmount);
+
+    trucksList.reserve(trucksAmount);
+    for(long i = 0; i < trucksAmount; ++i){
+        long capacity;
+        fscanf(arch, "%ld", &capacity);
+        trucksList.emplace_back(capacity);
+    }
+}
+
+void Instance::readMilk(FILE *arch){
+    fscanf(arch, "%ld", &milkTypesAmount);
+
+    std::vector<long> quotas_list;
+    quotas_list.reserve(milkTypesAmount);
+    for(long i = 0; i < milkTypesAmount; ++i){
+        long data;
+        fscanf(arch, "%ld", &data);
+        quotas_list.emplace_back(data);
+    }
+
+    std::vector<double> profit_list;
+    profit_list.reserve(milkTypesAmount);
+    for(long i = milkTypesAmount; i < milkTypesAmount*2; ++i){
+        double data;
+        fscanf(arch, "%lf", &data);
+        profit_list.emplace_back(data);
+    }
+
+    char milk_type = 'A';
+    milkList.reserve(milkTypesAmount);
+    for(long i = 0; i < milkTypesAmount; ++i){
+        milkList.emplace_back(milk_type, quotas_list.at(i), profit_list.at(i));
+        ++milk_type;
+    }
+}
+
+void Instance::readNodes(FILE *arch){
+    fscanf(arch, "%ld", &nodesAmount);
+
+    nodesList.reserve(nodesAmount);
+    for(long i = 0; i < nodesAmount; ++i){
+        long id, x, y, amountProduced;
+        char typeProduced;
+        fscanf(arch, "%ld %ld %ld %c %ld", &id, &x, &y, &typeProduced, &amountProduced);
+        nodesList.emplace_back(id, x, y, typeProduced, amountProduced);
+    }
+}
+

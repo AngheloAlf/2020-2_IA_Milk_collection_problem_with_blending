@@ -15,7 +15,10 @@ int main(int argc, char **argv){
     char *filename = argv[1];
     long K = strtol(argv[2], nullptr, 10);
 
+    printf("\n");
+
     Instance inst(filename);
+    inst.print();
     
     return 0;
 }
