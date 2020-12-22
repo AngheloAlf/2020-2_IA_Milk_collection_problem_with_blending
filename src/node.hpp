@@ -13,6 +13,8 @@ private:
 
 public:
     Node(long id, long x, long y, char typeProduced, long amountProduced);
+
+    void print();
 };
 
 
