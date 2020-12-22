@@ -9,6 +9,8 @@ private:
 
 public:
     Truck(long capacity);
+
+    void print();
 };
 
 
