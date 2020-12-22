@@ -21,12 +21,15 @@ private:
     long nodesAmount;
     std::vector<Node> nodesList;
 
+    double **distanceBetweenNodes;
+
     void readTrucks(FILE *arch);
     void readMilk(FILE *arch);
     void readNodes(FILE *arch);
 
 public:
     Instance(char *filename);
+    ~Instance();
 
     void print();
 };

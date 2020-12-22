@@ -5,9 +5,9 @@ EXECUTABLE = MCPwB.elf
 FLAGS_OPT = -Os
 FLAGS_DEBUG = -g -Og
 
-FLAGS_OTHER = $(FLAGS_OPT)
+FLAGS_OTHER = $(FLAGS_DEBUG)
 
-all: obj/main.o obj/instance.o obj/milk_type.o obj/node.o obj/truck.o
+all: obj/main.o obj/instance.o obj/milk_type.o obj/node.o obj/truck.o obj/utils.o
 	$(CC) $(FLAGS) $(FLAGS_OTHER) obj/*.o -o $(EXECUTABLE)
 
 
@@ -25,6 +25,9 @@ obj/node.o: src/node.cpp src/node.hpp
 
 obj/truck.o: src/truck.cpp src/truck.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/truck.cpp -c -o obj/truck.o
+
+obj/utils.o: src/utils.cpp src/utils.hpp
+	$(CC) $(FLAGS) $(FLAGS_OTHER) src/utils.cpp -c -o obj/utils.o
 
 
 clean:

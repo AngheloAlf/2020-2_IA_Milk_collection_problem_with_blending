@@ -1,5 +1,7 @@
 #include "instance.hpp"
 
+#include <stdlib.h>
+
 
 Instance::Instance(char *filename){
     FILE *arch = fopen(filename, "r");
@@ -10,6 +12,29 @@ Instance::Instance(char *filename){
 
     fclose(arch);
     
+    distanceBetweenNodes = (double **)malloc(sizeof(double)*nodesAmount);
+    for(long i = 0; i < nodesAmount; ++i){
+        distanceBetweenNodes[i] = (double *)malloc(sizeof(double)*nodesAmount);
+        Node &node_i = nodesList.at(i);
+        distanceBetweenNodes[i][i] = 0;
+
+        for(long j = i+1; j < nodesAmount; ++j){
+            double dist = node_i.distanceTo(nodesList.at(j));
+            distanceBetweenNodes[i][j] = dist;
+        }
+    }
+    for(long i = 1; i < nodesAmount; ++i){
+        for(long j = 0; j < i; ++j){
+            distanceBetweenNodes[i][j] = distanceBetweenNodes[j][i];
+        }
+    }
+}
+
+Instance::~Instance(){
+    for(long i = 0; i < nodesAmount; ++i){
+        free(distanceBetweenNodes[i]);
+    }
+    free(distanceBetweenNodes);
 }
 
 
@@ -28,6 +53,14 @@ void Instance::print(){
 
     for(auto &node: nodesList){
         node.print();
+        printf("\n");
+    }
+    printf("\n");
+
+    for(long i = 0; i < nodesAmount; ++i){
+        for(long j = 0; j < nodesAmount; ++j){
+            printf("%5.1lf ", distanceBetweenNodes[i][j]);
+        }
         printf("\n");
     }
     printf("\n");
@@ -58,7 +91,7 @@ void Instance::readMilk(FILE *arch){
 
     std::vector<double> profit_list;
     profit_list.reserve(milkTypesAmount);
-    for(long i = milkTypesAmount; i < milkTypesAmount*2; ++i){
+    for(long i = 0; i < milkTypesAmount; ++i){
         double data;
         fscanf(arch, "%lf", &data);
         profit_list.emplace_back(data);
