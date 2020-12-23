@@ -9,7 +9,9 @@
 #include "milk_type.hpp"
 #include "node.hpp"
 
-
+/**
+ *  Clase que modela la instancia que proviene de un archivo de texto.
+ */
 class Instance{
 private:
     long trucksAmount;
