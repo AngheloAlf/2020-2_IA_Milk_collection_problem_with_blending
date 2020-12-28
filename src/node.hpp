@@ -7,18 +7,21 @@
  */
 class Node{
 private:
-    long id;
+    long _id;
     long x;
     long y;
     char typeProduced; // Tipo de leche producida. 'A', 'B', 'C', etc.
     long amountProduced; // Cantidad de leche producida.
 
 public:
-    Node(long id, long x, long y, char typeProduced, long amountProduced);
+    Node(long _id, long x, long y, char typeProduced, long amountProduced);
 
     void print();
 
     double distanceTo(Node &other);
+    long id();
+    char quality();
+    long produced();
 };
 
 

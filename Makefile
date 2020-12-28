@@ -14,7 +14,7 @@ all: obj/main.o obj/instance.o obj/milk_type.o obj/node.o obj/truck.o obj/utils.
 obj/main.o: src/main.cpp src/instance.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/main.cpp -c -o obj/main.o
 
-obj/instance.o: src/instance.cpp src/instance.hpp src/milk_type.hpp src/node.hpp src/node.hpp src/truck.hpp
+obj/instance.o: src/instance.cpp src/instance.hpp src/milk_type.hpp src/node.hpp src/node.hpp src/truck.hpp src/utils.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/instance.cpp -c -o obj/instance.o
 
 obj/milk_type.o: src/milk_type.cpp src/milk_type.hpp

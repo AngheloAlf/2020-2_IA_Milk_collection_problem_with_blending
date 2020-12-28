@@ -7,12 +7,14 @@
  */
 class Truck{
 private:
-    long capacity; // Capacidad total de este camión.
+    long _capacity; // Capacidad total de este camión.
 
 public:
-    Truck(long capacity);
+    Truck(long _capacity);
 
     void print();
+
+    long capacity();
 };
 
 

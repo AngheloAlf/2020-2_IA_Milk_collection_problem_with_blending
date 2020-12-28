@@ -3,11 +3,14 @@
 #include <stdio.h>
 
 
-Truck::Truck(long capacity){
-    this->capacity = capacity;
+Truck::Truck(long _capacity){
+    this->_capacity = _capacity;
 }
 
 void Truck::print(){
-    printf("<Truck. capacity: %ld>", this->capacity);
+    printf("<Truck. capacity: %ld>", this->_capacity);
 }
 
+long Truck::capacity(){
+    return _capacity;
+}

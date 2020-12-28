@@ -1,6 +1,7 @@
 #include "instance.hpp"
 
 #include <stdlib.h>
+#include "utils.hpp"
 
 
 Instance::Instance(char *filename){
@@ -12,7 +13,7 @@ Instance::Instance(char *filename){
 
     fclose(arch);
     
-    distanceBetweenNodes = (double **)malloc(sizeof(double)*nodesAmount);
+    distanceBetweenNodes = (double **)malloc(sizeof(double *)*nodesAmount);
     for(long i = 0; i < nodesAmount; ++i){
         distanceBetweenNodes[i] = (double *)malloc(sizeof(double)*nodesAmount);
         Node &node_i = nodesList.at(i);
@@ -37,6 +38,68 @@ Instance::~Instance(){
     free(distanceBetweenNodes);
 }
 
+std::vector<std::vector<long>> Instance::initialSolution(){
+    std::vector<std::vector<long>> routes;
+    routes.assign(trucksAmount, std::vector<long>());
+    for(auto &route: routes){
+        route.reserve(nodesAmount);
+    }
+
+    std::vector<Node> farms_list(nodesList.begin()+1, nodesList.end());
+    //std::random_shuffle(farms_list.begin(), farms_list.end());
+    randomizeVector(farms_list);
+    //farms_list.reserve(nodesAmount);
+    //randomizeOrder(farms_list, nodesList);
+
+    long TOL = 0;
+    long truck_counter = 0;
+
+    /*print();
+    printf("\n");
+
+    for(auto &asdf: farms_list){
+        asdf.print();
+        printf("\n");
+    }*/
+
+    while(farms_list.size() > 0){
+        auto selected_farm_iter = selectRandomly(farms_list);
+        if(selected_farm_iter == farms_list.end()){
+            break;
+        }
+        Node selected_farm = *selected_farm_iter;
+        
+        //selected_farm.print();
+        //break;
+
+        //for(Truck &truck: trucksList){
+        for(unsigned long i = 0; i < trucksList.size(); ++i){
+            Truck &truck = trucksList.at(i);
+            if(truck.capacity() - selected_farm.produced() >= TOL /* && milk_quality_solution == selected_farm.quality()*/){
+                routes.at(i).push_back(selected_farm.id());
+                farms_list.erase(selected_farm_iter);
+                ++truck_counter;
+
+                selected_farm_iter = selectRandomly(farms_list);
+                if(selected_farm_iter == farms_list.end()){
+                    break;
+                }
+                selected_farm = *selected_farm_iter;
+            }
+        }
+
+        if(truck_counter == 0){
+            TOL -= 10;
+            continue;
+        }
+        else{
+            truck_counter = 0;
+        }
+        
+    }
+
+    return routes;
+}
 
 void Instance::print(){
     for(auto &truck: trucksList){

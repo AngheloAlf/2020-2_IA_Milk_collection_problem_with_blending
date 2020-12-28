@@ -13,12 +13,15 @@ int main(int argc, char **argv){
     }
 
     char *filename = argv[1];
-    long K = strtol(argv[2], nullptr, 10);
+    //long K = strtol(argv[2], nullptr, 10);
 
     printf("\n");
 
     Instance inst(filename);
-    inst.print();
+    //inst.print();
+
+    inst.initialSolution();
+
     
     return 0;
 }

@@ -33,6 +33,7 @@ public:
     Instance(char *filename);
     ~Instance();
 
+    std::vector<std::vector<long>> initialSolution();
     void print();
 };
 
