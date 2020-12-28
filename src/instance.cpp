@@ -48,7 +48,7 @@ std::vector<Route> Instance::initialSolution(){
     }
     randomizeVector(routes);
     for(long i = 0; i < trucksAmount; ++i){
-        routes.at(i).setTruck(i+1);
+        routes.at(i).setTruck(trucksList.at(i));
     }
 
     std::vector<Node> farms_list(nodesList.begin()+1, nodesList.end());
@@ -71,10 +71,9 @@ std::vector<Route> Instance::initialSolution(){
         Node selected_farm = *selected_farm_iter;
 
         for(unsigned long i = 0; i < trucksList.size(); ++i){
-            Truck &truck = trucksList.at(i);
             Route &route = routes.at(i);
-            if(truck.capacity() - selected_farm.produced() >= TOL && route.getMilkType() == selected_farm.quality()){
-                route.addFarm(selected_farm.id());
+            if(route.getCapacityLeft() - selected_farm.produced() >= TOL && route.getMilkType() == selected_farm.quality()){
+                route.addFarm(selected_farm);
                 farms_list.erase(selected_farm_iter);
                 ++truck_counter;
 
