@@ -9,6 +9,16 @@ MilkType::MilkType(char typeId, long quota, double profit){
     this->profit = profit;
 }
 
+char MilkType::id(){
+    return typeId;
+}
+long MilkType::milkQuota(){
+    return quota;
+}
+double MilkType::milkProfit(){
+    return profit;
+}
+
 void MilkType::print(){
     printf("<MilkType. typeId: %c, quota: %ld, profit: %lf>", typeId, quota, profit);
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include "truck.hpp"
 #include "node.hpp"
+#include "milk_type.hpp"
 
 class Route{
 public:
@@ -16,6 +17,8 @@ public:
     long getTruckId();
     char getMilkType();
     long getCapacityLeft();
+
+    double evaluateRoute(std::vector<Node> &farms_list, std::vector<MilkType> &milk_list);
 
     void print(bool newline=false);
 

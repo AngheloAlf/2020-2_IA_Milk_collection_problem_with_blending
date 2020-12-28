@@ -1,6 +1,8 @@
 #include "route.hpp"
 
-#include "stdio.h"
+#include <stdio.h>
+#include <assert.h>
+#include <algorithm>
 
 
 Route::Route(char milk_type, long nodes_amount)
@@ -27,12 +29,27 @@ long Route::getCapacityLeft(){
     return capacityLeft;
 }
 
+double Route::evaluateRoute(std::vector<Node> &farms_list, std::vector<MilkType> &milk_list){
+    double result = 0;
+    char current_milk_type = this->milkType;
+    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](MilkType &milk){ return current_milk_type == milk.id(); });
+    assert(milk_iter != milk_list.end());
+
+    double profit_percentage = milk_iter->milkProfit();
+    for(long &node_id: nodes){
+        auto iter = std::find_if(farms_list.begin(), farms_list.end(), [&node_id](Node &node){ return node.id() == node_id; });
+        assert(iter != farms_list.end());
+        result += iter->produced() * profit_percentage;
+    }
+    return result;
+}
+
 void Route::print(bool newline){
     printf("<Route. truckId: %li, capacityLeft: %4li, milkType: %c, nodes: [", truckId, capacityLeft, milkType);
     if(nodes.size() > 0){
-        printf("%li", nodes.at(0));
+        printf("%2li", nodes.at(0));
         for(unsigned long i = 1; i < nodes.size(); ++i){
-            printf(", %li", nodes.at(i));
+            printf(", %2li", nodes.at(i));
         }
     }
     printf("]>%s", newline? "\n" : "");

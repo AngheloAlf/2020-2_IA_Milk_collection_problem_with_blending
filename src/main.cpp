@@ -27,6 +27,7 @@ int main(int argc, char **argv){
         route.print(true);
     }
 
-    
+    printf("Value: %lf\n", inst.evaluateSolution(sol));
+
     return 0;
 }

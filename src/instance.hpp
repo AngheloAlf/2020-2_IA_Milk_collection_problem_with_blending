@@ -35,7 +35,7 @@ public:
     ~Instance();
 
     std::vector<Route> initialSolution();
-    long evaluateSolution(std::vector<Route> &sol);
+    double evaluateSolution(std::vector<Route> &sol);
 
     void print();
 };
