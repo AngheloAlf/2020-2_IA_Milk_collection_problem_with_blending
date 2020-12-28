@@ -11,9 +11,15 @@ Route::Route(char milk_type, long nodes_amount)
 void Route::setTruck(long truck_id){
     this->truckId = truck_id;
 }
-
 void Route::addFarm(long farm_id){
     nodes.push_back(farm_id);
+}
+
+long Route::getTruckId(){
+    return truckId;
+}
+char Route::getMilkType(){
+    return milkType;
 }
 
 void Route::print(bool newline){

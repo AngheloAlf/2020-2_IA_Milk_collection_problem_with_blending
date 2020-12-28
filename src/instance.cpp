@@ -72,8 +72,9 @@ std::vector<Route> Instance::initialSolution(){
 
         for(unsigned long i = 0; i < trucksList.size(); ++i){
             Truck &truck = trucksList.at(i);
-            if(truck.capacity() - selected_farm.produced() >= TOL /* && milk_quality_solution == selected_farm.quality()*/){
-                routes.at(i).addFarm(selected_farm.id());
+            Route &route = routes.at(i);
+            if(truck.capacity() - selected_farm.produced() >= TOL && route.getMilkType() == selected_farm.quality()){
+                route.addFarm(selected_farm.id());
                 farms_list.erase(selected_farm_iter);
                 ++truck_counter;
 

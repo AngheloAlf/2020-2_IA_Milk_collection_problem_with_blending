@@ -11,6 +11,9 @@ public:
     void setTruck(long truck_id);
     void addFarm(long farm_id);
 
+    long getTruckId();
+    char getMilkType();
+
     void print(bool newline=false);
 
 private:
