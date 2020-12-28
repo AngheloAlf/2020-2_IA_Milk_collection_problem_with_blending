@@ -35,12 +35,22 @@ double Route::evaluateRoute(std::vector<Node> &farms_list, std::vector<MilkType>
     auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](MilkType &milk){ return current_milk_type == milk.id(); });
     assert(milk_iter != milk_list.end());
 
+    Node &initial_node = farms_list.at(0);
+    Node &prev_node = farms_list.at(0);
+
     double profit_percentage = milk_iter->milkProfit();
     for(long &node_id: nodes){
         auto iter = std::find_if(farms_list.begin(), farms_list.end(), [&node_id](Node &node){ return node.id() == node_id; });
         assert(iter != farms_list.end());
-        result += iter->produced() * profit_percentage;
+        Node &curr_node = *iter;
+
+        result += curr_node.produced() * profit_percentage;
+        result -= curr_node.distanceTo(prev_node);
+
+        prev_node = curr_node;
     }
+
+    result -= prev_node.distanceTo(initial_node);
     return result;
 }
 

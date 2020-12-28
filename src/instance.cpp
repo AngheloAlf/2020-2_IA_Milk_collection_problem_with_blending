@@ -102,7 +102,6 @@ double Instance::evaluateSolution(std::vector<Route> &sol){
     double result = 0;
 
     for(Route route: sol){
-        //std::find_if(nodesList.begin(), nodesList.end(), [&route](Node &node){return node.id() == 26;});
         result += route.evaluateRoute(nodesList, milkList);
     }
 
