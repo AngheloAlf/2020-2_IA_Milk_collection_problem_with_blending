@@ -8,6 +8,7 @@
 #include "truck.hpp"
 #include "milk_type.hpp"
 #include "node.hpp"
+#include "route.hpp"
 
 /**
  *  Clase que modela la instancia que proviene de un archivo de texto.
@@ -33,10 +34,10 @@ public:
     Instance(char *filename);
     ~Instance();
 
-    std::vector<std::vector<long>> initialSolution();
+    std::vector<Route> initialSolution();
+    long evaluateSolution(std::vector<Route> &sol);
+
     void print();
 };
-
-
 
 #endif

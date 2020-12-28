@@ -20,7 +20,12 @@ int main(int argc, char **argv){
     Instance inst(filename);
     //inst.print();
 
-    inst.initialSolution();
+    auto sol = inst.initialSolution();
+    for(unsigned long i = 0; i < sol.size(); ++i){
+        printf("%li: ", i);
+        Route route = sol.at(i);
+        route.print(true);
+    }
 
     
     return 0;

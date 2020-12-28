@@ -2,19 +2,19 @@ CC = clang++
 FLAGS = -std=c++17 -Wall -Wextra -Wshadow
 EXECUTABLE = MCPwB.elf
 
-FLAGS_OPT = -Os
+FLAGS_RELEASE = -Os -DNDEBUG
 FLAGS_DEBUG = -g -Og
 
 FLAGS_OTHER = $(FLAGS_DEBUG)
 
-all: obj/main.o obj/instance.o obj/milk_type.o obj/node.o obj/truck.o obj/utils.o
+all: obj/main.o obj/instance.o obj/milk_type.o obj/node.o obj/truck.o obj/route.o obj/utils.o
 	$(CC) $(FLAGS) $(FLAGS_OTHER) obj/*.o -o $(EXECUTABLE)
 
 
 obj/main.o: src/main.cpp src/instance.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/main.cpp -c -o obj/main.o
 
-obj/instance.o: src/instance.cpp src/instance.hpp src/milk_type.hpp src/node.hpp src/node.hpp src/truck.hpp src/utils.hpp
+obj/instance.o: src/instance.cpp src/instance.hpp src/milk_type.hpp src/node.hpp src/node.hpp src/truck.hpp src/utils.hpp src/route.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/instance.cpp -c -o obj/instance.o
 
 obj/milk_type.o: src/milk_type.cpp src/milk_type.hpp
@@ -25,6 +25,9 @@ obj/node.o: src/node.cpp src/node.hpp
 
 obj/truck.o: src/truck.cpp src/truck.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/truck.cpp -c -o obj/truck.o
+
+obj/route.o: src/route.cpp src/route.hpp
+	$(CC) $(FLAGS) $(FLAGS_OTHER) src/route.cpp -c -o obj/route.o
 
 obj/utils.o: src/utils.cpp src/utils.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/utils.cpp -c -o obj/utils.o

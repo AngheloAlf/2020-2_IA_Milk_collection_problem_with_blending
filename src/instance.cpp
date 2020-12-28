@@ -1,6 +1,7 @@
 #include "instance.hpp"
 
 #include <stdlib.h>
+#include <assert.h>
 #include "utils.hpp"
 
 
@@ -38,18 +39,20 @@ Instance::~Instance(){
     free(distanceBetweenNodes);
 }
 
-std::vector<std::vector<long>> Instance::initialSolution(){
-    std::vector<std::vector<long>> routes;
-    routes.assign(trucksAmount, std::vector<long>());
-    for(auto &route: routes){
-        route.reserve(nodesAmount);
+std::vector<Route> Instance::initialSolution(){
+    std::vector<Route> routes;
+    routes.reserve(trucksAmount);
+    char milk_type = 'A';
+    for(long i = 0; i < trucksAmount; ++i){
+        routes.emplace_back(milk_type++, nodesAmount);
+    }
+    randomizeVector(routes);
+    for(long i = 0; i < trucksAmount; ++i){
+        routes.at(i).setTruck(i+1);
     }
 
     std::vector<Node> farms_list(nodesList.begin()+1, nodesList.end());
-    //std::random_shuffle(farms_list.begin(), farms_list.end());
     randomizeVector(farms_list);
-    //farms_list.reserve(nodesAmount);
-    //randomizeOrder(farms_list, nodesList);
 
     long TOL = 0;
     long truck_counter = 0;
@@ -64,26 +67,20 @@ std::vector<std::vector<long>> Instance::initialSolution(){
 
     while(farms_list.size() > 0){
         auto selected_farm_iter = selectRandomly(farms_list);
-        if(selected_farm_iter == farms_list.end()){
-            break;
-        }
+        assert(selected_farm_iter != farms_list.end());
         Node selected_farm = *selected_farm_iter;
-        
-        //selected_farm.print();
-        //break;
 
-        //for(Truck &truck: trucksList){
         for(unsigned long i = 0; i < trucksList.size(); ++i){
             Truck &truck = trucksList.at(i);
             if(truck.capacity() - selected_farm.produced() >= TOL /* && milk_quality_solution == selected_farm.quality()*/){
-                routes.at(i).push_back(selected_farm.id());
+                routes.at(i).addFarm(selected_farm.id());
                 farms_list.erase(selected_farm_iter);
                 ++truck_counter;
 
+                if(farms_list.size() == 0) break;
+
                 selected_farm_iter = selectRandomly(farms_list);
-                if(selected_farm_iter == farms_list.end()){
-                    break;
-                }
+                assert(selected_farm_iter != farms_list.end());
                 selected_farm = *selected_farm_iter;
             }
         }
@@ -99,6 +96,12 @@ std::vector<std::vector<long>> Instance::initialSolution(){
     }
 
     return routes;
+}
+
+long Instance::evaluateSolution(std::vector<Route> &sol){
+    long result = 0;
+
+    return result;
 }
 
 void Instance::print(){
@@ -137,7 +140,7 @@ void Instance::readTrucks(FILE *arch){
     for(long i = 0; i < trucksAmount; ++i){
         long capacity;
         fscanf(arch, "%ld", &capacity);
-        trucksList.emplace_back(capacity);
+        trucksList.emplace_back(i+1, capacity);
     }
 }
 

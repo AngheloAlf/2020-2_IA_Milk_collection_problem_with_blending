@@ -29,14 +29,6 @@ void randomizeVector(std::vector<T> &vec){
 }
 
 
-/*template<typename Iter>
-Iter select_randomly(Iter start, Iter end) {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
-    std::advance(start, dis(gen));
-    return start;
-}*/
 template<typename T>
 typename std::vector<T>::iterator selectRandomly(std::vector<T> &vec){
     if(vec.size() == 0){
