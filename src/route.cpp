@@ -9,6 +9,17 @@ Route::Route(char milk_type, long nodes_amount)
 : milkType(milk_type){
     nodes.reserve(nodes_amount);
 }
+Route::Route(const Route &other)
+: truckId(other.truckId), capacityLeft(other.capacityLeft), milkType(other.milkType), nodes(other.nodes){
+}
+
+Route &Route::operator=(const Route &other){
+    truckId = other.truckId;
+    capacityLeft = other.capacityLeft;
+    milkType = other.milkType;
+    nodes = other.nodes;
+    return *this;
+}
 
 void Route::setTruck(Truck &truck){
     this->truckId = truck.id();
@@ -28,11 +39,19 @@ char Route::getMilkType(){
 long Route::getCapacityLeft(){
     return capacityLeft;
 }
+std::vector<long> &Route::getNodes(){
+    return nodes;
+}
 
 double Route::evaluateRoute(std::vector<Node> &farms_list, std::vector<MilkType> &milk_list){
     double result = 0;
     char current_milk_type = this->milkType;
-    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](MilkType &milk){ return current_milk_type == milk.id(); });
+    //printf("Iniciando busqueda...\n");
+    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](MilkType &milk){ /*printf("%c %c\n", current_milk_type, milk.id());*/ ; return current_milk_type == milk.id(); });
+    //printf("Busqueda finalizada...\n");
+    if(milk_iter == milk_list.end()){
+        printf("oh no\n");
+    }
     assert(milk_iter != milk_list.end());
 
     Node &initial_node = farms_list.at(0);

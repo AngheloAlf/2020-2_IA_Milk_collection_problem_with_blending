@@ -108,6 +108,86 @@ double Instance::evaluateSolution(std::vector<Route> &sol){
     return result;
 }
 
+std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, long K){
+    std::vector<Route> best_solution(initial_solution);
+    std::vector<Route> solution(initial_solution);
+    double best_quality = evaluateSolution(best_solution);
+
+    for(long i = 0; i < K; ++i){
+        bool global_local = true;
+        do{
+            global_local |= extraLocalSearch(solution);
+            //if(!global_local) std::for_each(solution.begin(), solution.end(), [](Route &r){r.print();printf("\n");});
+            //global_local |= intra_local_search();
+            global_local = true;
+        } while(!global_local);
+
+        double quality = evaluateSolution(solution);
+        if(quality > best_quality){
+            best_solution = solution;
+            best_quality = quality;
+        }
+    }
+    
+    return best_solution;
+}
+
+
+bool Instance::extraLocalSearch(std::vector<Route> &solution){
+    bool extra_local = false;
+
+    double old_quality = evaluateSolution(solution);
+    std::vector<Route> alternative(solution);
+
+    do{
+        extra_local = true;
+        
+        for(auto i = alternative.begin(); i != alternative.end(); ++i){
+            Route &src = *i;
+            for(auto j = alternative.begin(); j != alternative.end(); ++j){
+                if(i == j){
+                    continue;
+                }
+                Route &dst = *j;
+
+                std::vector<long> &nodes_list_src = src.getNodes();
+                std::vector<long> &nodes_list_dst = dst.getNodes();
+                
+                for(unsigned long node_i = 0; node_i < nodes_list_src.size(); ++node_i){
+                    auto src_iter = nodes_list_src.begin() + node_i;
+                    long node_src = *src_iter;
+                    nodes_list_src.erase(src_iter);
+
+                    for(unsigned long node_j = 0; node_j < nodes_list_dst.size(); ++node_j){
+                        auto dst_iter = nodes_list_dst.begin();
+                        //std::advance(dst_iter, node_j);
+                        dst_iter += node_j;
+
+                        nodes_list_dst.insert(dst_iter, node_src);
+
+                        double new_quality = evaluateSolution(alternative);
+                        if(new_quality > old_quality){
+                            // ?
+                            //std::for_each(solution.begin(), solution.end(), [](Route &r){r.print();printf("\n");});
+                            //std::for_each(alternative.begin(), alternative.end(), [](Route &r){r.print();printf("\n");});
+                            solution = alternative;
+                            return false;
+                        }
+
+                        //nodes_list_dst.erase(dst_iter);
+                        nodes_list_dst.erase(nodes_list_dst.begin()+node_j);
+                    }
+
+                    nodes_list_src.insert(src_iter, node_src);
+                }
+            }
+        }
+    } while(!extra_local);
+
+    return true;
+}
+
+
 void Instance::print(){
     for(auto &truck: trucksList){
         truck.print();

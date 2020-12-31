@@ -13,7 +13,7 @@ int main(int argc, char **argv){
     }
 
     char *filename = argv[1];
-    //long K = strtol(argv[2], nullptr, 10);
+    long K = strtol(argv[2], nullptr, 10);
 
     printf("\n");
 
@@ -27,7 +27,15 @@ int main(int argc, char **argv){
         route.print(true);
     }
 
-    printf("Value: %lf\n", inst.evaluateSolution(sol));
+    printf("Value: %lf\n\n", inst.evaluateSolution(sol));
+
+    auto newsol(inst.hillClimbing(sol, K));
+    for(unsigned long i = 0; i < newsol.size(); ++i){
+        printf("%li: ", i);
+        Route route = newsol.at(i);
+        route.print(true);
+    }
+    printf("Value: %lf\n\n", inst.evaluateSolution(newsol));
 
     return 0;
 }

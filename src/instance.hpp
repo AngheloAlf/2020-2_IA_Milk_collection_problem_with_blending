@@ -30,12 +30,17 @@ private:
     void readMilk(FILE *arch);
     void readNodes(FILE *arch);
 
+    bool extraLocalSearch(std::vector<Route> &solution);
+    bool intraLocalSearch(std::vector<Route> &solution);
+
 public:
     Instance(char *filename);
     ~Instance();
 
     std::vector<Route> initialSolution();
     double evaluateSolution(std::vector<Route> &sol);
+
+    std::vector<Route> hillClimbing(std::vector<Route> &initial_solution, long K);
 
     void print();
 };

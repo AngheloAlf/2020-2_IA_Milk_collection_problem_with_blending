@@ -10,6 +10,9 @@
 class Route{
 public:
     Route(char milk_type, long nodes_amount);
+    Route(const Route &other);
+
+    Route &operator=(const Route &other);
 
     void setTruck(Truck &truck);
     void addFarm(Node &farm);
@@ -17,6 +20,7 @@ public:
     long getTruckId();
     char getMilkType();
     long getCapacityLeft();
+    std::vector<long> &getNodes();
 
     double evaluateRoute(std::vector<Node> &farms_list, std::vector<MilkType> &milk_list);
 
