@@ -14,17 +14,17 @@ public:
 
     Route &operator=(const Route &other);
 
-    void setTruck(Truck &truck);
-    void addFarm(Node &farm);
+    void setTruck(const Truck &truck);
+    void addFarm(const Node &farm);
 
-    long getTruckId();
-    char getMilkType();
-    long getCapacityLeft();
+    long getTruckId() const;
+    char getMilkType() const;
+    long getCapacityLeft() const;
     std::vector<long> &getNodes();
 
-    double evaluateRoute(std::vector<Node> &farms_list, std::vector<MilkType> &milk_list);
+    double evaluateRoute(const std::vector<Node> &farms_list, const std::vector<MilkType> &milk_list) const;
 
-    void print(bool newline=false);
+    void print(bool newline=false) const;
 
 private:
     long truckId;

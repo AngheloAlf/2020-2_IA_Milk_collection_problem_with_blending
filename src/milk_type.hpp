@@ -14,11 +14,11 @@ private:
 public:
     MilkType(char typeId, long quota, double profit);
 
-    char id();
-    long milkQuota();
-    double milkProfit();
+    char id() const;
+    long milkQuota() const;
+    double milkProfit() const;
 
-    void print();
+    void print(bool newline=false) const;
 };
 
 

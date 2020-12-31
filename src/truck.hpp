@@ -13,10 +13,10 @@ private:
 public:
     Truck(long _id, long _capacity);
 
-    void print();
+    void print(bool newline=false) const;
 
-    long id();
-    long capacity();
+    long id() const;
+    long capacity() const;
 };
 
 

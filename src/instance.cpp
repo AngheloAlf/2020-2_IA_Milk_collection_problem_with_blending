@@ -39,20 +39,20 @@ Instance::~Instance(){
     free(distanceBetweenNodes);
 }
 
-std::vector<Route> Instance::initialSolution(){
+std::vector<Route> Instance::initialSolution() const{
     std::vector<Route> routes;
     routes.reserve(trucksAmount);
     char milk_type = 'A';
     for(long i = 0; i < trucksAmount; ++i){
         routes.emplace_back(milk_type++, nodesAmount);
     }
-    randomizeVector(routes);
+    Utils::randomizeVector(routes);
     for(long i = 0; i < trucksAmount; ++i){
         routes.at(i).setTruck(trucksList.at(i));
     }
 
     std::vector<Node> farms_list(nodesList.begin()+1, nodesList.end());
-    randomizeVector(farms_list);
+    Utils::randomizeVector(farms_list);
 
     long TOL = 0;
     long truck_counter = 0;
@@ -66,7 +66,7 @@ std::vector<Route> Instance::initialSolution(){
     }*/
 
     while(farms_list.size() > 0){
-        auto selected_farm_iter = selectRandomly(farms_list);
+        auto selected_farm_iter = Utils::selectRandomly(farms_list);
         assert(selected_farm_iter != farms_list.end());
         Node selected_farm = *selected_farm_iter;
 
@@ -79,7 +79,7 @@ std::vector<Route> Instance::initialSolution(){
 
                 if(farms_list.size() == 0) break;
 
-                selected_farm_iter = selectRandomly(farms_list);
+                selected_farm_iter = Utils::selectRandomly(farms_list);
                 assert(selected_farm_iter != farms_list.end());
                 selected_farm = *selected_farm_iter;
             }
@@ -98,7 +98,7 @@ std::vector<Route> Instance::initialSolution(){
     return routes;
 }
 
-double Instance::evaluateSolution(std::vector<Route> &sol){
+double Instance::evaluateSolution(std::vector<Route> &sol) const{
     double result = 0;
 
     for(Route route: sol){
@@ -108,7 +108,7 @@ double Instance::evaluateSolution(std::vector<Route> &sol){
     return result;
 }
 
-std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, long K){
+std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, long K) const{
     std::vector<Route> best_solution(initial_solution);
     std::vector<Route> solution(initial_solution);
     double best_quality = evaluateSolution(best_solution);
@@ -133,7 +133,7 @@ std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, 
 }
 
 
-bool Instance::extraLocalSearch(std::vector<Route> &solution){
+bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
     bool extra_local = false;
 
     double old_quality = evaluateSolution(solution);
@@ -188,7 +188,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution){
 }
 
 
-void Instance::print(){
+void Instance::print(bool) const{
     for(auto &truck: trucksList){
         truck.print();
         printf("\n");

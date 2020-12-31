@@ -2,12 +2,13 @@
 #include <stdio.h>
 
 #include "instance.hpp"
+#include "utils.hpp"
 
 int main(int argc, char **argv){
     if(argc < 3){
         fprintf(stderr, "Faltan argumentos.\n");
         fprintf(stderr, "Ejecución:\n");
-        fprintf(stderr, "./MCPwB.elf <ruta/instancia.txt> <maxIteraciones>\n");
+        fprintf(stderr, "\t./MCPwB.elf <ruta/instancia.txt> <maxIteraciones>\n");
         fprintf(stderr, "Saliendo...\n");
         return 0;
     }
@@ -15,6 +16,7 @@ int main(int argc, char **argv){
     char *filename = argv[1];
     long K = strtol(argv[2], nullptr, 10);
 
+    Utils::debugPrintingEnabled = true;
     printf("\n");
 
     Instance inst(filename);

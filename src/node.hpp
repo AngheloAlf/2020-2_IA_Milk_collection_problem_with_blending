@@ -16,12 +16,12 @@ private:
 public:
     Node(long _id, long x, long y, char typeProduced, long amountProduced);
 
-    void print();
+    void print(bool newline=false) const;
 
-    double distanceTo(Node &other);
-    long id();
-    char quality();
-    long produced();
+    double distanceTo(const Node &other) const;
+    long id() const;
+    char quality() const;
+    long produced() const;
 };
 
 
