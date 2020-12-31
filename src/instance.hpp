@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <vector>
+#include <memory>
 
 #include "truck.hpp"
 #include "milk_type.hpp"
@@ -33,7 +34,7 @@ private:
     std::vector<MilkType> milkList;
 
     long nodesAmount;
-    std::vector<Node> nodesList;
+    std::vector<std::unique_ptr<Node>> nodesList;
 
     double **distanceBetweenNodes;
 

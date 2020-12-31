@@ -24,9 +24,9 @@ Route &Route::operator=(const Route &other){
 void Route::print(bool newline) const{
     printf("<Route. truckId: %li, capacityLeft: %4li, milkType: %c, nodes: [", truckId, capacityLeft, milkType);
     if(nodes.size() > 0){
-        printf("%2li", nodes.at(0));
+        printf("%2li", nodes.at(0)->getId());
         for(unsigned long i = 1; i < nodes.size(); ++i){
-            printf(", %2li", nodes.at(i));
+            printf(", %2li", nodes.at(i)->getId());
         }
     }
     printf("]>%s", newline? "\n" : "");
@@ -41,7 +41,7 @@ char Route::getMilkType() const{
 long Route::getCapacityLeft() const{
     return capacityLeft;
 }
-std::vector<long> &Route::getNodes(){
+std::vector<const Node *> &Route::getNodes(){
     return nodes;
 }
 
@@ -49,12 +49,12 @@ void Route::setTruck(const Truck &truck){
     this->truckId = truck.getId();
     this->capacityLeft = truck.getCapacity();
 }
-void Route::addFarm(const Node &farm){
-    nodes.push_back(farm.getId());
-    capacityLeft -= farm.getProduced();
+void Route::addFarm(const Node *farm){
+    nodes.push_back(farm);
+    capacityLeft -= (*farm).getProduced();
 }
 
-double Route::evaluateRoute(const std::vector<Node> &farms_list, const std::vector<MilkType> &milk_list) const{
+double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const{
     double result = 0;
     char current_milk_type = this->milkType;
     //printf("Iniciando busqueda...\n");
@@ -62,25 +62,16 @@ double Route::evaluateRoute(const std::vector<Node> &farms_list, const std::vect
     //printf("Busqueda finalizada...\n");
     assert(milk_iter != milk_list.end());
 
-    const Node &initial_node = farms_list.at(0);
-    //Node &prev_node = farms_list.at(0);
-    std::vector<Node>::const_iterator prev_iter = farms_list.begin();
+    const Node *prev_node = initial_node;
 
     double profit_percentage = milk_iter->getMilkProfit();
-    for(const long &node_id: nodes){
-        auto iter = std::find_if(farms_list.begin(), farms_list.end(), [&node_id](const Node &node){ return node.getId() == node_id; });
-        assert(iter != farms_list.end());
-        const Node &curr_node = *iter;
+    for(auto iter = nodes.begin(); iter != nodes.end(); ++iter){
+        result += (**iter).getProduced() * profit_percentage;
+        result -= (**iter).distanceTo(*prev_node);
 
-        result += curr_node.getProduced() * profit_percentage;
-        //result -= curr_node.distanceTo(prev_node);
-        result -= curr_node.distanceTo(*prev_iter);
-
-        //prev_node = curr_node;
-        prev_iter = iter;
+        prev_node = *iter;
     }
 
-    //result -= prev_node.distanceTo(initial_node);
-    result -= (*prev_iter).distanceTo(initial_node);
+    result -= (*prev_node).distanceTo(*initial_node);
     return result;
 }

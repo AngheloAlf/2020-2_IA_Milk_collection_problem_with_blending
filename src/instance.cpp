@@ -17,11 +17,11 @@ Instance::Instance(char *filename){
     distanceBetweenNodes = (double **)malloc(sizeof(double *)*nodesAmount);
     for(long i = 0; i < nodesAmount; ++i){
         distanceBetweenNodes[i] = (double *)malloc(sizeof(double)*nodesAmount);
-        Node &node_i = nodesList.at(i);
+        Node *node_i = nodesList.at(i).get();
         distanceBetweenNodes[i][i] = 0;
 
         for(long j = i+1; j < nodesAmount; ++j){
-            double dist = node_i.distanceTo(nodesList.at(j));
+            double dist = (*node_i).distanceTo(*nodesList.at(j).get());
             distanceBetweenNodes[i][j] = dist;
         }
     }
@@ -54,7 +54,7 @@ void Instance::print(bool) const{
     printf("\n");
 
     for(auto &node: nodesList){
-        node.print();
+        (*node).print();
         printf("\n");
     }
     printf("\n");
@@ -81,7 +81,11 @@ std::vector<Route> Instance::initialSolution() const{
         routes.at(i).setTruck(trucksList.at(i));
     }
 
-    std::vector<Node> farms_list(nodesList.begin()+1, nodesList.end());
+    std::vector<Node *> farms_list;
+    farms_list.reserve(nodesList.size());
+    for(auto iter = nodesList.begin()+1; iter < nodesList.end(); ++iter){
+        farms_list.push_back((*iter).get());
+    }
     Utils::randomizeVector(farms_list);
 
     long TOL = 0;
@@ -98,11 +102,11 @@ std::vector<Route> Instance::initialSolution() const{
     while(farms_list.size() > 0){
         auto selected_farm_iter = Utils::selectRandomly(farms_list);
         assert(selected_farm_iter != farms_list.end());
-        Node selected_farm = *selected_farm_iter;
+        Node *selected_farm = *selected_farm_iter;
 
         for(unsigned long i = 0; i < trucksList.size(); ++i){
             Route &route = routes.at(i);
-            if(route.getCapacityLeft() - selected_farm.getProduced() >= TOL && route.getMilkType() == selected_farm.getQuality()){
+            if(route.getCapacityLeft() - (*selected_farm).getProduced() >= TOL && route.getMilkType() == (*selected_farm).getQuality()){
                 route.addFarm(selected_farm);
                 farms_list.erase(selected_farm_iter);
                 ++truck_counter;
@@ -132,7 +136,7 @@ double Instance::evaluateSolution(std::vector<Route> &sol) const{
     double result = 0;
 
     for(Route route: sol){
-        result += route.evaluateRoute(nodesList, milkList);
+        result += route.evaluateRoute(nodesList.at(0).get(), milkList);
     }
 
     return result;
@@ -180,17 +184,16 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                 }
                 Route &dst = *j;
 
-                std::vector<long> &nodes_list_src = src.getNodes();
-                std::vector<long> &nodes_list_dst = dst.getNodes();
+                std::vector<const Node *> &nodes_list_src = src.getNodes();
+                std::vector<const Node *> &nodes_list_dst = dst.getNodes();
                 
                 for(unsigned long node_i = 0; node_i < nodes_list_src.size(); ++node_i){
                     auto src_iter = nodes_list_src.begin() + node_i;
-                    long node_src = *src_iter;
+                    const Node *node_src = *src_iter;
                     nodes_list_src.erase(src_iter);
 
                     for(unsigned long node_j = 0; node_j < nodes_list_dst.size(); ++node_j){
                         auto dst_iter = nodes_list_dst.begin();
-                        //std::advance(dst_iter, node_j);
                         dst_iter += node_j;
 
                         nodes_list_dst.insert(dst_iter, node_src);
@@ -204,7 +207,6 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                             return false;
                         }
 
-                        //nodes_list_dst.erase(dst_iter);
                         nodes_list_dst.erase(nodes_list_dst.begin()+node_j);
                     }
 
@@ -264,7 +266,7 @@ void Instance::readNodes(FILE *arch){
         long id, x, y, amountProduced;
         char typeProduced;
         fscanf(arch, "%ld %ld %ld %c %ld", &id, &x, &y, &typeProduced, &amountProduced);
-        nodesList.emplace_back(id, x, y, typeProduced, amountProduced);
+        nodesList.push_back(std::make_unique<Node>(id, x, y, typeProduced, amountProduced));
     }
 }
 

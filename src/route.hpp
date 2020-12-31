@@ -19,18 +19,18 @@ public:
     long getTruckId() const;
     char getMilkType() const;
     long getCapacityLeft() const;
-    std::vector<long> &getNodes();
+    std::vector<const Node *> &getNodes();
 
     void setTruck(const Truck &truck);
-    void addFarm(const Node &farm);
+    void addFarm(const Node *farm);
 
-    double evaluateRoute(const std::vector<Node> &farms_list, const std::vector<MilkType> &milk_list) const;
+    double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;
 
 private:
     long truckId;
     long capacityLeft;
     char milkType;
-    std::vector<long> nodes;
+    std::vector<const Node *> nodes;
 };
 
 #endif
