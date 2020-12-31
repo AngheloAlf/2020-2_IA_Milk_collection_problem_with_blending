@@ -42,20 +42,17 @@ Instance::~Instance(){
 
 void Instance::print(bool) const{
     for(auto &truck: trucksList){
-        truck.print();
-        printf("\n");
+        truck.print(true);
     }
     printf("\n");
 
     for(auto &milk: milkList){
-        milk.print();
-        printf("\n");
+        milk.print(true);
     }
     printf("\n");
 
     for(auto &node: nodesList){
-        (*node).print();
-        printf("\n");
+        (*node).print(true);
     }
     printf("\n");
 
@@ -91,12 +88,10 @@ std::vector<Route> Instance::initialSolution() const{
     long TOL = 0;
     long truck_counter = 0;
 
-    /*print();
-    printf("\n");
+    /*print(true);
 
     for(auto &asdf: farms_list){
-        asdf.print();
-        printf("\n");
+        asdf.print(true);
     }*/
 
     while(farms_list.size() > 0){
@@ -151,9 +146,8 @@ std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, 
         bool global_local = true;
         do{
             global_local |= extraLocalSearch(solution);
-            //if(!global_local) std::for_each(solution.begin(), solution.end(), [](Route &r){r.print();printf("\n");});
             //global_local |= intra_local_search();
-            global_local = true;
+            //global_local = true;
         } while(!global_local);
 
         double quality = evaluateSolution(solution);
@@ -184,33 +178,37 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                 }
                 Route &dst = *j;
 
-                std::vector<const Node *> &nodes_list_src = src.getNodes();
-                std::vector<const Node *> &nodes_list_dst = dst.getNodes();
+                const std::vector<const Node *> &nodes_list_src = src.getNodes();
+                const std::vector<const Node *> &nodes_list_dst = dst.getNodes();
                 
                 for(unsigned long node_i = 0; node_i < nodes_list_src.size(); ++node_i){
                     auto src_iter = nodes_list_src.begin() + node_i;
                     const Node *node_src = *src_iter;
-                    nodes_list_src.erase(src_iter);
+
+                    // Evitar agregar el nodo a la ruta si esto sobrecarga al camión.
+                    if(dst.getCapacityLeft() - (*node_src).getProduced() < 0){
+                        continue;
+                    }
+
+                    src.removeFarm(src_iter);
 
                     for(unsigned long node_j = 0; node_j < nodes_list_dst.size(); ++node_j){
                         auto dst_iter = nodes_list_dst.begin();
                         dst_iter += node_j;
 
-                        nodes_list_dst.insert(dst_iter, node_src);
+                        dst.addFarm(dst_iter, node_src);
 
                         double new_quality = evaluateSolution(alternative);
                         if(new_quality > old_quality){
-                            // ?
-                            //std::for_each(solution.begin(), solution.end(), [](Route &r){r.print();printf("\n");});
-                            //std::for_each(alternative.begin(), alternative.end(), [](Route &r){r.print();printf("\n");});
                             solution = alternative;
                             return false;
                         }
 
-                        nodes_list_dst.erase(nodes_list_dst.begin()+node_j);
+                        dst_iter = nodes_list_dst.begin() + node_j;
+                        dst.removeFarm(dst_iter);
                     }
 
-                    nodes_list_src.insert(src_iter, node_src);
+                    src.addFarm(src_iter, node_src);
                 }
             }
         }

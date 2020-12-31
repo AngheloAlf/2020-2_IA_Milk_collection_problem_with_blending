@@ -19,10 +19,12 @@ public:
     long getTruckId() const;
     char getMilkType() const;
     long getCapacityLeft() const;
-    std::vector<const Node *> &getNodes();
+    const std::vector<const Node *> &getNodes();
 
     void setTruck(const Truck &truck);
     void addFarm(const Node *farm);
+    void addFarm(std::vector<const Node *>::const_iterator &position, const Node *farm);
+    void removeFarm(std::vector<const Node *>::const_iterator &position);
 
     double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;
 
@@ -31,6 +33,9 @@ private:
     long capacityLeft;
     char milkType;
     std::vector<const Node *> nodes;
+    long milkAmount;
+
+    // TODO: contar cuantas granjas hay de cada tipo.
 };
 
 #endif
