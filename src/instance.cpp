@@ -39,6 +39,36 @@ Instance::~Instance(){
     free(distanceBetweenNodes);
 }
 
+
+void Instance::print(bool) const{
+    for(auto &truck: trucksList){
+        truck.print();
+        printf("\n");
+    }
+    printf("\n");
+
+    for(auto &milk: milkList){
+        milk.print();
+        printf("\n");
+    }
+    printf("\n");
+
+    for(auto &node: nodesList){
+        node.print();
+        printf("\n");
+    }
+    printf("\n");
+
+    for(long i = 0; i < nodesAmount; ++i){
+        for(long j = 0; j < nodesAmount; ++j){
+            printf("%5.1lf ", distanceBetweenNodes[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+
 std::vector<Route> Instance::initialSolution() const{
     std::vector<Route> routes;
     routes.reserve(trucksAmount);
@@ -72,7 +102,7 @@ std::vector<Route> Instance::initialSolution() const{
 
         for(unsigned long i = 0; i < trucksList.size(); ++i){
             Route &route = routes.at(i);
-            if(route.getCapacityLeft() - selected_farm.produced() >= TOL && route.getMilkType() == selected_farm.quality()){
+            if(route.getCapacityLeft() - selected_farm.getProduced() >= TOL && route.getMilkType() == selected_farm.getQuality()){
                 route.addFarm(selected_farm);
                 farms_list.erase(selected_farm_iter);
                 ++truck_counter;
@@ -185,35 +215,6 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
     } while(!extra_local);
 
     return true;
-}
-
-
-void Instance::print(bool) const{
-    for(auto &truck: trucksList){
-        truck.print();
-        printf("\n");
-    }
-    printf("\n");
-
-    for(auto &milk: milkList){
-        milk.print();
-        printf("\n");
-    }
-    printf("\n");
-
-    for(auto &node: nodesList){
-        node.print();
-        printf("\n");
-    }
-    printf("\n");
-
-    for(long i = 0; i < nodesAmount; ++i){
-        for(long j = 0; j < nodesAmount; ++j){
-            printf("%5.1lf ", distanceBetweenNodes[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
 }
 
 

@@ -6,24 +6,23 @@
  *  Modela cada planta procesadora
  */
 class Node{
+public:
+    Node(long _id, long x, long y, char typeProduced, long amountProduced);
+
+    void print(bool newline=false) const;
+
+    long getId() const;
+    char getQuality() const;
+    long getProduced() const;
+
+    double distanceTo(const Node &other) const;
+
 private:
     long _id;
     long x;
     long y;
     char typeProduced; // Tipo de leche producida. 'A', 'B', 'C', etc.
     long amountProduced; // Cantidad de leche producida.
-
-public:
-    Node(long _id, long x, long y, char typeProduced, long amountProduced);
-
-    void print(bool newline=false) const;
-
-    double distanceTo(const Node &other) const;
-    long id() const;
-    char quality() const;
-    long produced() const;
 };
-
-
 
 #endif

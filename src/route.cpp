@@ -21,13 +21,15 @@ Route &Route::operator=(const Route &other){
     return *this;
 }
 
-void Route::setTruck(const Truck &truck){
-    this->truckId = truck.id();
-    this->capacityLeft = truck.capacity();
-}
-void Route::addFarm(const Node &farm){
-    nodes.push_back(farm.id());
-    capacityLeft -= farm.produced();
+void Route::print(bool newline) const{
+    printf("<Route. truckId: %li, capacityLeft: %4li, milkType: %c, nodes: [", truckId, capacityLeft, milkType);
+    if(nodes.size() > 0){
+        printf("%2li", nodes.at(0));
+        for(unsigned long i = 1; i < nodes.size(); ++i){
+            printf(", %2li", nodes.at(i));
+        }
+    }
+    printf("]>%s", newline? "\n" : "");
 }
 
 long Route::getTruckId() const{
@@ -43,11 +45,20 @@ std::vector<long> &Route::getNodes(){
     return nodes;
 }
 
+void Route::setTruck(const Truck &truck){
+    this->truckId = truck.getId();
+    this->capacityLeft = truck.getCapacity();
+}
+void Route::addFarm(const Node &farm){
+    nodes.push_back(farm.getId());
+    capacityLeft -= farm.getProduced();
+}
+
 double Route::evaluateRoute(const std::vector<Node> &farms_list, const std::vector<MilkType> &milk_list) const{
     double result = 0;
     char current_milk_type = this->milkType;
     //printf("Iniciando busqueda...\n");
-    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](const MilkType &milk){ /*printf("%c %c\n", current_milk_type, milk.id());*/ ; return current_milk_type == milk.id(); });
+    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](const MilkType &milk){ /*printf("%c %c\n", current_milk_type, milk.id());*/ ; return current_milk_type == milk.getId(); });
     //printf("Busqueda finalizada...\n");
     assert(milk_iter != milk_list.end());
 
@@ -55,13 +66,13 @@ double Route::evaluateRoute(const std::vector<Node> &farms_list, const std::vect
     //Node &prev_node = farms_list.at(0);
     std::vector<Node>::const_iterator prev_iter = farms_list.begin();
 
-    double profit_percentage = milk_iter->milkProfit();
+    double profit_percentage = milk_iter->getMilkProfit();
     for(const long &node_id: nodes){
-        auto iter = std::find_if(farms_list.begin(), farms_list.end(), [&node_id](const Node &node){ return node.id() == node_id; });
+        auto iter = std::find_if(farms_list.begin(), farms_list.end(), [&node_id](const Node &node){ return node.getId() == node_id; });
         assert(iter != farms_list.end());
         const Node &curr_node = *iter;
 
-        result += curr_node.produced() * profit_percentage;
+        result += curr_node.getProduced() * profit_percentage;
         //result -= curr_node.distanceTo(prev_node);
         result -= curr_node.distanceTo(*prev_iter);
 
@@ -72,15 +83,4 @@ double Route::evaluateRoute(const std::vector<Node> &farms_list, const std::vect
     //result -= prev_node.distanceTo(initial_node);
     result -= (*prev_iter).distanceTo(initial_node);
     return result;
-}
-
-void Route::print(bool newline) const{
-    printf("<Route. truckId: %li, capacityLeft: %4li, milkType: %c, nodes: [", truckId, capacityLeft, milkType);
-    if(nodes.size() > 0){
-        printf("%2li", nodes.at(0));
-        for(unsigned long i = 1; i < nodes.size(); ++i){
-            printf(", %2li", nodes.at(i));
-        }
-    }
-    printf("]>%s", newline? "\n" : "");
 }

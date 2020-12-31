@@ -15,8 +15,8 @@ public:
 
     void print(bool newline=false) const;
 
-    long id() const;
-    long capacity() const;
+    long getId() const;
+    long getCapacity() const;
 };
 
 

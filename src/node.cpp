@@ -15,16 +15,16 @@ void Node::print(bool newline) const{
     printf("<Node. id: %2ld, x: %2ld, y: %2ld, typeProduced: %c, amountProduced: %4ld>%s", _id, x, y, typeProduced, amountProduced, newline?"\n":"");
 }
 
-double Node::distanceTo(const Node &other) const{
-    return Utils::distance(x, y, other.x, other.y);
-}
-
-long Node::id() const{
+long Node::getId() const{
     return _id;
 }
-char Node::quality() const{
+char Node::getQuality() const{
     return typeProduced;
 }
-long Node::produced() const{
+long Node::getProduced() const{
     return amountProduced;
+}
+
+double Node::distanceTo(const Node &other) const{
+    return Utils::distance(x, y, other.x, other.y);
 }
