@@ -20,7 +20,7 @@ int main(int argc, char **argv){
     printf("\n");
 
     Instance inst(filename);
-    //inst.print();
+    //inst.print(true);
 
     auto sol = inst.initialSolution();
     for(unsigned long i = 0; i < sol.size(); ++i){

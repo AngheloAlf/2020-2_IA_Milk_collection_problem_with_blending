@@ -85,6 +85,9 @@ void Route::removeFarm(std::vector<const Node *>::const_iterator &position){
 
     nodes.erase(position);
 }
+void Route::reverseFarmsOrder(std::vector<const Node *>::size_type left, std::vector<const Node *>::size_type right){
+    std::reverse(nodes.begin() + left, nodes.begin() + right);
+}
 
 double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const{
     if(capacityLeft < 0){

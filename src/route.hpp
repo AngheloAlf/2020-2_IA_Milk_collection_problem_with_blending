@@ -25,6 +25,7 @@ public:
     void addFarm(const Node *farm);
     void addFarm(std::vector<const Node *>::const_iterator &position, const Node *farm);
     void removeFarm(std::vector<const Node *>::const_iterator &position);
+    void reverseFarmsOrder(std::vector<const Node *>::size_type left, std::vector<const Node *>::size_type right);
 
     double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;
 
@@ -32,7 +33,7 @@ private:
     long truckId;
     long capacityLeft;
     char milkType;
-    std::vector<const Node *> nodes;
+    std::vector<const Node *> nodes; // TODO: considerar cambiar a std::list
     long milkAmount;
 
     // TODO: contar cuantas granjas hay de cada tipo.

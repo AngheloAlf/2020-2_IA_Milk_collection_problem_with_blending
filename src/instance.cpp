@@ -144,14 +144,19 @@ std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, 
 
     for(long i = 0; i < K; ++i){
         bool global_local = true;
+        //long j = 0;
+        //printf("i: %li\n", i);
         do{
-            global_local |= extraLocalSearch(solution);
-            //global_local |= intra_local_search();
-            //global_local = true;
+            global_local = true;
+            global_local &= extraLocalSearch(solution);
+            global_local &= intraLocalSearch(solution);
+            //printf("\t j: %6li - quality: %lf\n", j, evaluateSolution(solution));
+            //++j;
         } while(!global_local);
 
         double quality = evaluateSolution(solution);
         if(quality > best_quality){
+            //printf("i: %4li, j: %4li, quality: %lf\n", i, j, quality);
             best_solution = solution;
             best_quality = quality;
         }
@@ -161,6 +166,7 @@ std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, 
 }
 
 
+// Mover un nodo de una ruta a las demás rutas.
 bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
     bool extra_local = false;
 
@@ -169,9 +175,11 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 
     do{
         extra_local = true;
-        
+
+        // TODO: randomizar orden.
         for(auto i = alternative.begin(); i != alternative.end(); ++i){
             Route &src = *i;
+            // TODO: randomizar orden.
             for(auto j = alternative.begin(); j != alternative.end(); ++j){
                 if(i == j){
                     continue;
@@ -180,7 +188,8 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 
                 const std::vector<const Node *> &nodes_list_src = src.getNodes();
                 const std::vector<const Node *> &nodes_list_dst = dst.getNodes();
-                
+
+                // TODO: randomizar orden.
                 for(unsigned long node_i = 0; node_i < nodes_list_src.size(); ++node_i){
                     auto src_iter = nodes_list_src.begin() + node_i;
                     const Node *node_src = *src_iter;
@@ -192,6 +201,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 
                     src.removeFarm(src_iter);
 
+                    // TODO: randomizar orden.
                     for(unsigned long node_j = 0; node_j < nodes_list_dst.size(); ++node_j){
                         auto dst_iter = nodes_list_dst.begin();
                         dst_iter += node_j;
@@ -213,6 +223,43 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
             }
         }
     } while(!extra_local);
+
+    return true;
+}
+
+// Movimiento 2-opt de la ruta consigo misma.
+bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
+    bool intra_local = false;
+
+    double old_quality = evaluateSolution(solution);
+    std::vector<Route> alternative(solution);
+
+    do{
+        intra_local = true;
+
+        // TODO: randomizar orden.
+        for(auto i = alternative.begin(); i != alternative.end(); ++i){
+            Route &route = *i;
+
+            const std::vector<const Node *> &nodes_list = route.getNodes();
+
+            // TODO: randomizar orden.
+            for(unsigned long pos_left = 0; pos_left < nodes_list.size(); ++pos_left){
+                // TODO: randomizar orden.
+                for(unsigned long pos_right = pos_left+1; pos_right < nodes_list.size(); ++pos_right){
+                    route.reverseFarmsOrder(pos_left, pos_right);
+
+                    double new_quality = evaluateSolution(alternative);
+                    if(new_quality > old_quality){
+                        solution = alternative;
+                        return false;
+                    }
+
+                    route.reverseFarmsOrder(pos_left,pos_right);
+                }
+            }
+        }
+    } while(!intra_local);
 
     return true;
 }

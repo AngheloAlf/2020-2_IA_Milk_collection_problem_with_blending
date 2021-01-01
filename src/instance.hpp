@@ -39,7 +39,9 @@ private:
     double **distanceBetweenNodes;
 
     // Movimientos para hill climbing.
+    // Mover un nodo de una ruta a las demás rutas.
     bool extraLocalSearch(std::vector<Route> &solution) const;
+    // Movimiento 2-opt de la ruta consigo misma.
     bool intraLocalSearch(std::vector<Route> &solution) const;
 
     // Funciones de inicialización.
