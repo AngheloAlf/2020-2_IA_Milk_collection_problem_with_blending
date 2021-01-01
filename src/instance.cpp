@@ -88,6 +88,7 @@ std::vector<Route> Instance::initialSolution() const{
     Utils::randomizeVector(farms_list);
 
     long TOL = 0;
+    const long tol_change = 10;
     long truck_counter = 0;
 
     /*print(true);
@@ -117,7 +118,7 @@ std::vector<Route> Instance::initialSolution() const{
         }
 
         if(truck_counter == 0){
-            TOL -= 10;
+            TOL -= tol_change;
             continue;
         }
         truck_counter = 0;

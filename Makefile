@@ -40,5 +40,9 @@ obj/utils.o: src/utils.cpp src/utils.hpp
 clean:
 	rm -f $(EXECUTABLE) obj/*.o
 
+
+TIDY_CHECKS_INCLUDED = readability-*,clang-diagnostic-*,clang-analyzer-*,bugprone*,modernize*,performance*,portability*,diagnostic-*,analyzer-*,misc*,hicpp-special-member-functions
+TIDY_CHECKS_EXCLUDED = ,-modernize-use-trailing-return-type,-clang-analyzer-valist.Uninitialized,-readability-braces-around-statements,-readability-isolate-declaration
+
 tidy:
-	clang-tidy -header-filter=.* -checks=-*,readability-*,clang-diagnostic-*,clang-analyzer-*,bugprone*,modernize*,performance*,-modernize-pass-by-value,-modernize-use-auto,-modernize-use-using,-modernize-use-trailing-return-type,-clang-analyzer-valist.Uninitialized,-readability-braces-around-statements src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)
+	clang-tidy -header-filter=.* -checks=$(TIDY_CHECKS_INCLUDED)$(TIDY_CHECKS_EXCLUDED) src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)

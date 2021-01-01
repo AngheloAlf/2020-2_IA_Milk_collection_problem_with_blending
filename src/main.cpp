@@ -4,6 +4,8 @@
 #include "instance.hpp"
 #include "utils.hpp"
 
+#define BASE10 (10)
+
 int main(int argc, char **argv){
     if(argc < 3){
         fprintf(stderr, "Faltan argumentos.\n");
@@ -14,7 +16,7 @@ int main(int argc, char **argv){
     }
 
     char *filename = argv[1];
-    long K = strtol(argv[2], nullptr, 10);
+    long K = strtol(argv[2], nullptr, BASE10);
 
     Utils::debugPrintingEnabled = true;
     printf("\n");

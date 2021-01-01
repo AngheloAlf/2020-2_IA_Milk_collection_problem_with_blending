@@ -17,7 +17,12 @@
 class Instance{
 public:
     Instance(char *filename);
+    Instance(Instance &other) = delete;
+    Instance(Instance &&other) = delete;
     ~Instance();
+
+    Instance &operator=(Instance &other) = delete;
+    Instance &&operator=(Instance &&other) = delete;
 
     void print(bool newline=false) const;
 
