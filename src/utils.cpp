@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-#include <math.h>
+#include <cmath>
 
 double Utils::distance(double x0, double y0, double x1, double y1){
     double x = x1-x0;

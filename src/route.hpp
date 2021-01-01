@@ -10,9 +10,6 @@
 class Route{
 public:
     Route(char milk_type, long nodes_amount);
-    Route(const Route &other);
-
-    Route &operator=(const Route &other);
 
     void print(bool newline=false) const;
 

@@ -1,6 +1,6 @@
 #include "node.hpp"
 
-#include <stdio.h>
+#include <cstdio>
 #include "utils.hpp"
 
 Node::Node(long _id, long x, long y, char typeProduced, long amountProduced){

@@ -22,9 +22,9 @@ public:
     void print(bool newline=false) const;
 
     std::vector<Route> initialSolution() const;
-    double evaluateSolution(std::vector<Route> &sol) const;
+    double evaluateSolution(const std::vector<Route> &sol) const;
 
-    std::vector<Route> hillClimbing(std::vector<Route> &initial_solution, long K) const;
+    std::vector<Route> hillClimbing(const std::vector<Route> &initial_solution, long K) const;
 
 private:
     long trucksAmount;

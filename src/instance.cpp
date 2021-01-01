@@ -1,7 +1,7 @@
 #include "instance.hpp"
 
-#include <stdlib.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cassert>
 #include "utils.hpp"
 
 
@@ -127,17 +127,17 @@ std::vector<Route> Instance::initialSolution() const{
     return routes;
 }
 
-double Instance::evaluateSolution(std::vector<Route> &sol) const{
+double Instance::evaluateSolution(const std::vector<Route> &sol) const{
     double result = 0;
 
-    for(Route route: sol){
+    for(const Route &route: sol){
         result += route.evaluateRoute(nodesList.at(0).get(), milkList);
     }
 
     return result;
 }
 
-std::vector<Route> Instance::hillClimbing(std::vector<Route> &initial_solution, long K) const{
+std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solution, long K) const{
     std::vector<Route> best_solution(initial_solution);
     std::vector<Route> solution(initial_solution);
     double best_quality = evaluateSolution(best_solution);

@@ -1,25 +1,13 @@
 #include "route.hpp"
 
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <algorithm>
 
 
 Route::Route(char milk_type, long nodes_amount)
 : milkType(milk_type), milkAmount(0){
     nodes.reserve(nodes_amount);
-}
-Route::Route(const Route &other)
-: truckId(other.truckId), capacityLeft(other.capacityLeft), milkType(other.milkType), nodes(other.nodes), milkAmount(other.milkAmount){
-}
-
-Route &Route::operator=(const Route &other){
-    truckId = other.truckId;
-    capacityLeft = other.capacityLeft;
-    milkType = other.milkType;
-    nodes = other.nodes;
-    milkAmount = other.milkAmount;
-    return *this;
 }
 
 void Route::print(bool newline) const{
@@ -106,11 +94,11 @@ double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType
     }
 
     const Node *prev_node = initial_node;
-    for(auto iter = nodes.begin(); iter != nodes.end(); ++iter){
-        result += (**iter).getProduced() * profit_percentage;
-        result -= (**iter).distanceTo(*prev_node);
+    for(const auto &node: nodes){
+        result += (*node).getProduced() * profit_percentage;
+        result -= (*node).distanceTo(*prev_node);
 
-        prev_node = *iter;
+        prev_node = node;
     }
 
     result -= (*prev_node).distanceTo(*initial_node);

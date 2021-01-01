@@ -1,6 +1,6 @@
 #include "milk_type.hpp"
 
-#include <stdio.h>
+#include <cstdio>
 
 
 MilkType::MilkType(char typeId, long quota, double profit){

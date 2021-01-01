@@ -35,3 +35,6 @@ obj/utils.o: src/utils.cpp src/utils.hpp
 
 clean:
 	rm -f $(EXECUTABLE) obj/*.o
+
+tidy:
+	clang-tidy -checks=-*,clang-diagnostic-*,clang-analyzer-*,-*,bugprone*,modernize*,performance*,-modernize-pass-by-value,-modernize-use-auto,-modernize-use-using src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)

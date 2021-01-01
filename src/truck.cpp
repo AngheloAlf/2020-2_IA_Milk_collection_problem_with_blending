@@ -1,6 +1,6 @@
 #include "truck.hpp"
 
-#include <stdio.h>
+#include <cstdio>
 
 
 Truck::Truck(long _id, long _capacity){
