@@ -17,16 +17,22 @@ Instance::Instance(char *filename){
 
     assert(nodesAmount != 0);
     distanceBetweenNodes = (long double **)malloc(sizeof(long double *)*nodesAmount);
+    assert(distanceBetweenNodes != nullptr);
     for(unsigned long i = 0; i < nodesAmount; ++i){
         distanceBetweenNodes[i] = (long double *)malloc(sizeof(long double)*nodesAmount);
-        Node *node_i = nodesList.at(i).get();
+        assert(distanceBetweenNodes[i] != nullptr);
+        auto *node_i = nodesList.at(i).get();
+        // Los nodos tienen distancia cero a si mismos.
         distanceBetweenNodes[i][i] = 0;
 
         for(unsigned long j = i+1; j < nodesAmount; ++j){
             long double dist = (*node_i).distanceTo(*nodesList.at(j).get());
             distanceBetweenNodes[i][j] = dist;
         }
+
+        (*node_i).setDistanceMatrix(distanceBetweenNodes);
     }
+    // Calcula diagonal inferior.
     for(unsigned long i = 1; i < nodesAmount; ++i){
         for(unsigned long j = 0; j < i; ++j){
             distanceBetweenNodes[i][j] = distanceBetweenNodes[j][i];
@@ -78,7 +84,7 @@ std::vector<Route> Instance::initialSolution() const{
     routes.reserve(trucksAmount);
     char milk_type = 'A';
     for(unsigned long i = 0; i < trucksAmount; ++i){
-        routes.emplace_back(milk_type++, nodesAmount);
+        routes.emplace_back(milk_type++, nodesAmount, milkTypesAmount);
     }
     Utils::randomizeVector(routes);
     for(unsigned long i = 0; i < trucksAmount; ++i){

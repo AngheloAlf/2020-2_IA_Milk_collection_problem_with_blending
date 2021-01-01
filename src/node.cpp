@@ -4,7 +4,7 @@
 #include "utils.hpp"
 
 Node::Node(long node_id, long node_x, long node_y, char type_produced, long amount_produced)
-: id(node_id), x(node_x), y(node_y), amountProduced(amount_produced), typeProduced(type_produced){
+: id(node_id), x(node_x), y(node_y), amountProduced(amount_produced), distanceMatrix(nullptr), typeProduced(type_produced){
 }
 
 void Node::print(bool newline) const{
@@ -21,6 +21,13 @@ long Node::getProduced() const{
     return amountProduced;
 }
 
+void Node::setDistanceMatrix(long double **&distance_matrix){
+    distanceMatrix = distance_matrix;
+}
+
 long double Node::distanceTo(const Node &other) const{
+    if(distanceMatrix != nullptr){
+        return distanceMatrix[id-1][other.id-1];
+    }
     return Utils::distance(x, y, other.x, other.y);
 }

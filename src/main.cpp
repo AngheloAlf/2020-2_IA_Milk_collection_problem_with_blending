@@ -41,6 +41,7 @@ int main(int argc, char **argv){
     }
 
     auto optimal(inst.hillClimbing(sol, K));
+
     if(Utils::debugPrintingEnabled){
         for(unsigned long i = 0; i < optimal.size(); ++i){
             printf("%li: ", i);

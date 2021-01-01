@@ -5,9 +5,10 @@
 #include <algorithm>
 
 
-Route::Route(char milk_type, unsigned long nodes_amount)
+Route::Route(char milk_type, unsigned long nodes_amount, unsigned long milk_types_amount)
 : truckId(0), capacityLeft(0), milkAmount(0), milkType(milk_type){
     nodes.reserve(nodes_amount);
+    nodes_counter.assign(milk_types_amount, 0);
 }
 
 void Route::print(bool newline) const{
@@ -42,9 +43,12 @@ void Route::setTruck(const Truck &truck){
     this->capacityLeft = truck.getCapacity();
 }
 void Route::addFarm(const Node *farm){
+    assert((*farm).getQuality() != '-');
     nodes.push_back(farm);
     capacityLeft -= (*farm).getProduced();
     milkAmount += (*farm).getProduced();
+
+    nodes_counter[(*farm).getQuality()-'A'] += 1;
 
     // Si la calidad de la leche de esta granja es peor, el conjunto de esta ruta empeora.
     if((*farm).getQuality() > milkType){
@@ -52,9 +56,12 @@ void Route::addFarm(const Node *farm){
     }
 }
 void Route::addFarm(std::vector<const Node *>::const_iterator &position, const Node *farm){
+    assert((*farm).getQuality() != '-');
     nodes.insert(position, farm);
     capacityLeft -= (*farm).getProduced();
     milkAmount += (*farm).getProduced();
+
+    nodes_counter[(*farm).getQuality()-'A'] += 1;
 
     // Si la calidad de la leche de esta granja es peor, el conjunto de esta ruta empeora.
     if((*farm).getQuality() > milkType){
@@ -64,12 +71,17 @@ void Route::addFarm(std::vector<const Node *>::const_iterator &position, const N
 void Route::removeFarm(std::vector<const Node *>::const_iterator &position){
     capacityLeft += (**position).getProduced();
     milkAmount -= (**position).getProduced();
+
+    nodes_counter[(**position).getQuality()-'A'] -= 1;
+
     // Si la calidad de la leche de esa granja es la peor es posible que el conjunto mejore al removerla.
-    if((**position).getQuality() == milkType){
+    if((**position).getQuality() == milkType && nodes_counter[(**position).getQuality()-'A'] == 0){
+        char i = milkType;
         milkType = 0;
-        for(auto &node: nodes){
-            if((*node).getQuality() > milkType){
-                milkType = (*node).getQuality();
+        for(--i; i >= 'A'; --i){
+            if(nodes_counter[i-'A'] > 0){
+                milkType = i;
+                break;
             }
         }
     }

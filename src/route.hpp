@@ -9,7 +9,7 @@
 
 class Route{
 public:
-    Route(char milk_type, unsigned long nodes_amount);
+    Route(char milk_type, unsigned long nodes_amount, unsigned long milk_types_amount);
 
     void print(bool newline=false) const;
 
@@ -39,12 +39,11 @@ public:
 
 private:
     std::vector<const Node *> nodes; // TODO: considerar cambiar a std::list
+    std::vector<unsigned long> nodes_counter;
     long truckId;
     long capacityLeft;
     long milkAmount;
     char milkType;
-
-    // TODO: contar cuantas granjas hay de cada tipo.
 };
 
 #endif
