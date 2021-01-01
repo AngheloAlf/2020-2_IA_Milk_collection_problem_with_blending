@@ -7,6 +7,7 @@
 
 Instance::Instance(char *filename){
     FILE *arch = fopen(filename, "r");
+    assert(arch != nullptr);
 
     readTrucks(arch);
     readMilk(arch);
@@ -14,14 +15,14 @@ Instance::Instance(char *filename){
 
     fclose(arch);
     
-    distanceBetweenNodes = (double **)malloc(sizeof(double *)*nodesAmount);
+    distanceBetweenNodes = (long double **)malloc(sizeof(long double *)*nodesAmount);
     for(long i = 0; i < nodesAmount; ++i){
-        distanceBetweenNodes[i] = (double *)malloc(sizeof(double)*nodesAmount);
+        distanceBetweenNodes[i] = (long double *)malloc(sizeof(long double)*nodesAmount);
         Node *node_i = nodesList.at(i).get();
         distanceBetweenNodes[i][i] = 0;
 
         for(long j = i+1; j < nodesAmount; ++j){
-            double dist = (*node_i).distanceTo(*nodesList.at(j).get());
+            long double dist = (*node_i).distanceTo(*nodesList.at(j).get());
             distanceBetweenNodes[i][j] = dist;
         }
     }
@@ -58,7 +59,7 @@ void Instance::print(bool) const{
 
     for(long i = 0; i < nodesAmount; ++i){
         for(long j = 0; j < nodesAmount; ++j){
-            printf("%5.1lf ", distanceBetweenNodes[i][j]);
+            printf("%5.1Lf ", distanceBetweenNodes[i][j]);
         }
         printf("\n");
     }
@@ -127,8 +128,8 @@ std::vector<Route> Instance::initialSolution() const{
     return routes;
 }
 
-double Instance::evaluateSolution(const std::vector<Route> &sol) const{
-    double result = 0;
+long double Instance::evaluateSolution(const std::vector<Route> &sol) const{
+    long double result = 0;
 
     for(const Route &route: sol){
         result += route.evaluateRoute(nodesList.at(0).get(), milkList);
@@ -140,7 +141,7 @@ double Instance::evaluateSolution(const std::vector<Route> &sol) const{
 std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solution, long K) const{
     std::vector<Route> best_solution(initial_solution);
     std::vector<Route> solution(initial_solution);
-    double best_quality = evaluateSolution(best_solution);
+    long double best_quality = evaluateSolution(best_solution);
 
     for(long i = 0; i < K; ++i){
         bool global_local = true;
@@ -150,13 +151,13 @@ std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solu
             global_local = true;
             global_local &= extraLocalSearch(solution);
             global_local &= intraLocalSearch(solution);
-            //printf("\t j: %6li - quality: %lf\n", j, evaluateSolution(solution));
+            //printf("\t j: %6li - quality: %Lf\n", j, evaluateSolution(solution));
             //++j;
         } while(!global_local);
 
-        double quality = evaluateSolution(solution);
+        long double quality = evaluateSolution(solution);
         if(quality > best_quality){
-            //printf("i: %4li, j: %4li, quality: %lf\n", i, j, quality);
+            //printf("i: %4li, j: %4li, quality: %Lf\n", i, j, quality);
             best_solution = solution;
             best_quality = quality;
         }
@@ -170,7 +171,7 @@ std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solu
 bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
     bool extra_local = false;
 
-    double old_quality = evaluateSolution(solution);
+    long double old_quality = evaluateSolution(solution);
     std::vector<Route> alternative(solution);
 
     do{
@@ -208,7 +209,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 
                         dst.addFarm(dst_iter, node_src);
 
-                        double new_quality = evaluateSolution(alternative);
+                        long double new_quality = evaluateSolution(alternative);
                         if(new_quality > old_quality){
                             solution = alternative;
                             return false;
@@ -231,7 +232,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
     bool intra_local = false;
 
-    double old_quality = evaluateSolution(solution);
+    long double old_quality = evaluateSolution(solution);
     std::vector<Route> alternative(solution);
 
     do{
@@ -249,7 +250,7 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
                 for(unsigned long pos_right = pos_left+1; pos_right < nodes_list.size(); ++pos_right){
                     route.reverseFarmsOrder(pos_left, pos_right);
 
-                    double new_quality = evaluateSolution(alternative);
+                    long double new_quality = evaluateSolution(alternative);
                     if(new_quality > old_quality){
                         solution = alternative;
                         return false;
@@ -287,11 +288,11 @@ void Instance::readMilk(FILE *arch){
         quotas_list.emplace_back(data);
     }
 
-    std::vector<double> profit_list;
+    std::vector<long double> profit_list;
     profit_list.reserve(milkTypesAmount);
     for(long i = 0; i < milkTypesAmount; ++i){
-        double data;
-        fscanf(arch, "%lf", &data);
+        long double data;
+        fscanf(arch, "%Lf", &data);
         profit_list.emplace_back(data);
     }
 

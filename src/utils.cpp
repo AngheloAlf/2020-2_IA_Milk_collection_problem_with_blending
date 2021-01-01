@@ -2,9 +2,9 @@
 
 #include <cmath>
 
-double Utils::distance(double x0, double y0, double x1, double y1){
-    double x = x1-x0;
-    double y = y1-y0;
+long double Utils::distance(long double x0, long double y0, long double x1,long double y1){
+    long double x = x1-x0;
+    long double y = y1-y0;
 
     return sqrtl(x*x+y*y);
 }

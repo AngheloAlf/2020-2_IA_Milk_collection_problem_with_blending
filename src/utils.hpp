@@ -8,16 +8,18 @@
 
 namespace Utils{
     /// Calcula la distancia entre 2 puntos.
-    double distance(double x0, double y0, double x1, double y1);
+    [[nodiscard]]
+    long double distance(long double x0, long double y0, long double x1, long double y1);
 
 
     int randomGenerator(int i);
 
     template<class T>
     void randomizeVector(std::vector<T> &vec){
-        std::random_shuffle(vec.begin(), vec.end(), randomGenerator);
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::shuffle(vec.begin(), vec.end(), gen);
     }
-
 
     template<typename T>
     typename std::vector<T>::iterator selectRandomly(std::vector<T> &vec){

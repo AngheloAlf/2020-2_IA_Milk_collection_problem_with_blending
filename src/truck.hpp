@@ -15,7 +15,9 @@ public:
 
     void print(bool newline=false) const;
 
+    [[nodiscard]]
     long getId() const;
+    [[nodiscard]]
     long getCapacity() const;
 };
 

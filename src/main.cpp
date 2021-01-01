@@ -29,7 +29,7 @@ int main(int argc, char **argv){
         route.print(true);
     }
 
-    printf("Value: %lf\n\n", inst.evaluateSolution(sol));
+    printf("Value: %Lf\n\n", inst.evaluateSolution(sol));
 
     auto newsol(inst.hillClimbing(sol, K));
     for(unsigned long i = 0; i < newsol.size(); ++i){
@@ -37,7 +37,7 @@ int main(int argc, char **argv){
         Route route = newsol.at(i);
         route.print(true);
     }
-    printf("Value: %lf\n\n", inst.evaluateSolution(newsol));
+    printf("Value: %Lf\n\n", inst.evaluateSolution(newsol));
 
     return 0;
 }

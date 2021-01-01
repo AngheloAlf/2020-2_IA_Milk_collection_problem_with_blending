@@ -11,11 +11,15 @@ public:
 
     void print(bool newline=false) const;
 
+    [[nodiscard]]
     long getId() const;
+    [[nodiscard]]
     char getQuality() const;
+    [[nodiscard]]
     long getProduced() const;
 
-    double distanceTo(const Node &other) const;
+    [[nodiscard]]
+    long double distanceTo(const Node &other) const;
 
 private:
     long _id;

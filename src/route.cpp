@@ -77,16 +77,16 @@ void Route::reverseFarmsOrder(std::vector<const Node *>::size_type left, std::ve
     std::reverse(nodes.begin() + left, nodes.begin() + right);
 }
 
-double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const{
+long double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const{
     if(capacityLeft < 0){
         return 0;
     }
-    double result = 0;
+    long double result = 0;
     char current_milk_type = this->milkType;
     auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](const MilkType &milk){ /*printf("%c %c\n", current_milk_type, milk.id());*/ ; return current_milk_type == milk.getId(); });
     assert(milk_iter != milk_list.end());
 
-    double profit_percentage = (*milk_iter).getMilkProfit();
+    long double profit_percentage = (*milk_iter).getMilkProfit();
     long quota = (*milk_iter).getMilkQuota();
     // Si la cuota de la planta procesadora no se cumple, la ruta aporta 0.
     if(milkAmount < quota){

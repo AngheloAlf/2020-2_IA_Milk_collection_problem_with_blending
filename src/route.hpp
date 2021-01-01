@@ -13,8 +13,11 @@ public:
 
     void print(bool newline=false) const;
 
+    [[nodiscard]]
     long getTruckId() const;
+    [[nodiscard]]
     char getMilkType() const;
+    [[nodiscard]]
     long getCapacityLeft() const;
     const std::vector<const Node *> &getNodes();
 
@@ -24,7 +27,8 @@ public:
     void removeFarm(std::vector<const Node *>::const_iterator &position);
     void reverseFarmsOrder(std::vector<const Node *>::size_type left, std::vector<const Node *>::size_type right);
 
-    double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;
+    [[nodiscard]]
+    long double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;
 
 private:
     long truckId;

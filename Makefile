@@ -1,5 +1,5 @@
 CC = clang++
-FLAGS = -std=c++17 -Wall -Wextra -Wshadow
+FLAGS = -std=c++17 -Wall -Wextra -Wshadow -Wpedantic
 EXECUTABLE = MCPwB.elf
 
 FLAGS_RELEASE = -Os -DNDEBUG
@@ -37,4 +37,4 @@ clean:
 	rm -f $(EXECUTABLE) obj/*.o
 
 tidy:
-	clang-tidy -checks=-*,clang-diagnostic-*,clang-analyzer-*,-*,bugprone*,modernize*,performance*,-modernize-pass-by-value,-modernize-use-auto,-modernize-use-using src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)
+	clang-tidy -header-filter=.* -checks=-*,clang-diagnostic-*,clang-analyzer-*,bugprone*,modernize*,performance*,-modernize-pass-by-value,-modernize-use-auto,-modernize-use-using,-modernize-use-trailing-return-type,-clang-analyzer-valist.Uninitialized src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)

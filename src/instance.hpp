@@ -2,7 +2,7 @@
 #ifndef INSTANCE_HPP
 #define INSTANCE_HPP
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <memory>
 
@@ -21,9 +21,12 @@ public:
 
     void print(bool newline=false) const;
 
+    [[nodiscard]]
     std::vector<Route> initialSolution() const;
-    double evaluateSolution(const std::vector<Route> &sol) const;
+    [[nodiscard]]
+    long double evaluateSolution(const std::vector<Route> &sol) const;
 
+    [[nodiscard]]
     std::vector<Route> hillClimbing(const std::vector<Route> &initial_solution, long K) const;
 
 private:
@@ -36,7 +39,7 @@ private:
     long nodesAmount;
     std::vector<std::unique_ptr<Node>> nodesList;
 
-    double **distanceBetweenNodes;
+    long double **distanceBetweenNodes;
 
     // Movimientos para hill climbing.
     // Mover un nodo de una ruta a las demás rutas.

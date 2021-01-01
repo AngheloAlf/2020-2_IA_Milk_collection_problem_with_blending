@@ -25,6 +25,6 @@ long Node::getProduced() const{
     return amountProduced;
 }
 
-double Node::distanceTo(const Node &other) const{
+long double Node::distanceTo(const Node &other) const{
     return Utils::distance(x, y, other.x, other.y);
 }
