@@ -7,7 +7,7 @@
  */
 class Node{
 public:
-    Node(long _id, long x, long y, char typeProduced, long amountProduced);
+    Node(long node_id, long node_x, long node_y, char type_produced, long amount_produced);
 
     void print(bool newline=false) const;
 
@@ -22,11 +22,11 @@ public:
     long double distanceTo(const Node &other) const;
 
 private:
-    long _id;
+    long id;
     long x;
     long y;
-    char typeProduced; // Tipo de leche producida. 'A', 'B', 'C', etc.
     long amountProduced; // Cantidad de leche producida.
+    char typeProduced; // Tipo de leche producida. 'A', 'B', 'C', etc.
 };
 
 #endif

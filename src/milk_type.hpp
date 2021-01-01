@@ -7,7 +7,7 @@
  */
 class MilkType{
 public:
-    MilkType(char typeId, long quota, long double profit);
+    MilkType(char type_id, long milk_quota, long double milk_profit);
 
     void print(bool newline=false) const;
 
@@ -19,9 +19,9 @@ public:
     long double getMilkProfit() const;
 
 private:
-    char typeId; // Tipo de leche. 'A', 'B', 'C', etc.
-    long quota; // Cantidad mínima pedida de este tipo de leche.
     long double profit; // La ganancia asociada a este tipo de leche.
+    long quota; // Cantidad mínima pedida de este tipo de leche.
+    char typeId; // Tipo de leche. 'A', 'B', 'C', etc.
 };
 
 

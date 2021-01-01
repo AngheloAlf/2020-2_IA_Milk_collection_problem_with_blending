@@ -14,51 +14,52 @@ Instance::Instance(char *filename){
     readNodes(arch);
 
     fclose(arch);
-    
+
+    assert(nodesAmount != 0);
     distanceBetweenNodes = (long double **)malloc(sizeof(long double *)*nodesAmount);
-    for(long i = 0; i < nodesAmount; ++i){
+    for(unsigned long i = 0; i < nodesAmount; ++i){
         distanceBetweenNodes[i] = (long double *)malloc(sizeof(long double)*nodesAmount);
         Node *node_i = nodesList.at(i).get();
         distanceBetweenNodes[i][i] = 0;
 
-        for(long j = i+1; j < nodesAmount; ++j){
+        for(unsigned long j = i+1; j < nodesAmount; ++j){
             long double dist = (*node_i).distanceTo(*nodesList.at(j).get());
             distanceBetweenNodes[i][j] = dist;
         }
     }
-    for(long i = 1; i < nodesAmount; ++i){
-        for(long j = 0; j < i; ++j){
+    for(unsigned long i = 1; i < nodesAmount; ++i){
+        for(unsigned long j = 0; j < i; ++j){
             distanceBetweenNodes[i][j] = distanceBetweenNodes[j][i];
         }
     }
 }
 
 Instance::~Instance(){
-    for(long i = 0; i < nodesAmount; ++i){
+    for(unsigned long i = 0; i < nodesAmount; ++i){
         free(distanceBetweenNodes[i]);
     }
     free(distanceBetweenNodes);
 }
 
 
-void Instance::print(bool) const{
-    for(auto &truck: trucksList){
+void Instance::print(bool /*unused*/) const{
+    for(const auto &truck: trucksList){
         truck.print(true);
     }
     printf("\n");
 
-    for(auto &milk: milkList){
+    for(const auto &milk: milkList){
         milk.print(true);
     }
     printf("\n");
 
-    for(auto &node: nodesList){
+    for(const auto &node: nodesList){
         (*node).print(true);
     }
     printf("\n");
 
-    for(long i = 0; i < nodesAmount; ++i){
-        for(long j = 0; j < nodesAmount; ++j){
+    for(unsigned long i = 0; i < nodesAmount; ++i){
+        for(unsigned long j = 0; j < nodesAmount; ++j){
             printf("%5.1Lf ", distanceBetweenNodes[i][j]);
         }
         printf("\n");
@@ -71,11 +72,11 @@ std::vector<Route> Instance::initialSolution() const{
     std::vector<Route> routes;
     routes.reserve(trucksAmount);
     char milk_type = 'A';
-    for(long i = 0; i < trucksAmount; ++i){
+    for(unsigned long i = 0; i < trucksAmount; ++i){
         routes.emplace_back(milk_type++, nodesAmount);
     }
     Utils::randomizeVector(routes);
-    for(long i = 0; i < trucksAmount; ++i){
+    for(unsigned long i = 0; i < trucksAmount; ++i){
         routes.at(i).setTruck(trucksList.at(i));
     }
 
@@ -95,7 +96,7 @@ std::vector<Route> Instance::initialSolution() const{
         asdf.print(true);
     }*/
 
-    while(farms_list.size() > 0){
+    while(!farms_list.empty()){
         auto selected_farm_iter = Utils::selectRandomly(farms_list);
         assert(selected_farm_iter != farms_list.end());
         Node *selected_farm = *selected_farm_iter;
@@ -107,7 +108,7 @@ std::vector<Route> Instance::initialSolution() const{
                 farms_list.erase(selected_farm_iter);
                 ++truck_counter;
 
-                if(farms_list.size() == 0) break;
+                if(farms_list.empty()) break;
 
                 selected_farm_iter = Utils::selectRandomly(farms_list);
                 assert(selected_farm_iter != farms_list.end());
@@ -119,10 +120,7 @@ std::vector<Route> Instance::initialSolution() const{
             TOL -= 10;
             continue;
         }
-        else{
-            truck_counter = 0;
-        }
-        
+        truck_counter = 0;
     }
 
     return routes;
@@ -256,7 +254,7 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
                         return false;
                     }
 
-                    route.reverseFarmsOrder(pos_left,pos_right);
+                    route.reverseFarmsOrder(pos_left, pos_right);
                 }
             }
         }
@@ -267,10 +265,11 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
 
 
 void Instance::readTrucks(FILE *arch){
-    fscanf(arch, "%ld", &trucksAmount);
+    fscanf(arch, "%lu", &trucksAmount);
+    assert(trucksAmount != 0);
 
     trucksList.reserve(trucksAmount);
-    for(long i = 0; i < trucksAmount; ++i){
+    for(unsigned long i = 0; i < trucksAmount; ++i){
         long capacity;
         fscanf(arch, "%ld", &capacity);
         trucksList.emplace_back(i+1, capacity);
@@ -278,11 +277,12 @@ void Instance::readTrucks(FILE *arch){
 }
 
 void Instance::readMilk(FILE *arch){
-    fscanf(arch, "%ld", &milkTypesAmount);
+    fscanf(arch, "%lu", &milkTypesAmount);
+    assert(milkTypesAmount != 0);
 
     std::vector<long> quotas_list;
     quotas_list.reserve(milkTypesAmount);
-    for(long i = 0; i < milkTypesAmount; ++i){
+    for(unsigned long i = 0; i < milkTypesAmount; ++i){
         long data;
         fscanf(arch, "%ld", &data);
         quotas_list.emplace_back(data);
@@ -290,7 +290,7 @@ void Instance::readMilk(FILE *arch){
 
     std::vector<long double> profit_list;
     profit_list.reserve(milkTypesAmount);
-    for(long i = 0; i < milkTypesAmount; ++i){
+    for(unsigned long i = 0; i < milkTypesAmount; ++i){
         long double data;
         fscanf(arch, "%Lf", &data);
         profit_list.emplace_back(data);
@@ -298,17 +298,18 @@ void Instance::readMilk(FILE *arch){
 
     char milk_type = 'A';
     milkList.reserve(milkTypesAmount);
-    for(long i = 0; i < milkTypesAmount; ++i){
+    for(unsigned long i = 0; i < milkTypesAmount; ++i){
         milkList.emplace_back(milk_type, quotas_list.at(i), profit_list.at(i));
         ++milk_type;
     }
 }
 
 void Instance::readNodes(FILE *arch){
-    fscanf(arch, "%ld", &nodesAmount);
+    fscanf(arch, "%lu", &nodesAmount);
+    assert(nodesAmount != 0);
 
     nodesList.reserve(nodesAmount);
-    for(long i = 0; i < nodesAmount; ++i){
+    for(unsigned long i = 0; i < nodesAmount; ++i){
         long id, x, y, amountProduced;
         char typeProduced;
         fscanf(arch, "%ld %ld %ld %c %ld", &id, &x, &y, &typeProduced, &amountProduced);

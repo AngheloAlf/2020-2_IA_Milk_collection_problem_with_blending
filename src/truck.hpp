@@ -6,12 +6,8 @@
  *  Clase que modela a un camión.
  */
 class Truck{
-private:
-    long _id;
-    long _capacity; // Capacidad total de este camión.
-
 public:
-    Truck(long _id, long _capacity);
+    Truck(long truck_id, long truck_capacity);
 
     void print(bool newline=false) const;
 
@@ -19,6 +15,10 @@ public:
     long getId() const;
     [[nodiscard]]
     long getCapacity() const;
+
+private:
+    long id;
+    long capacity; // Capacidad total de este camión.
 };
 
 

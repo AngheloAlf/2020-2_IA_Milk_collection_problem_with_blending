@@ -3,18 +3,17 @@
 #include <cstdio>
 
 
-Truck::Truck(long _id, long _capacity){
-    this->_id = _id;
-    this->_capacity = _capacity;
+Truck::Truck(long truck_id, long truck_capacity)
+: id(truck_id), capacity(truck_capacity){
 }
 
 void Truck::print(bool newline) const{
-    printf("<Truck. id: %ld, capacity: %ld>%s", this->_id, this->_capacity, newline?"\n":"");
+    printf("<Truck. id: %ld, capacity: %ld>%s", this->id, this->capacity, newline?"\n":"");
 }
 
 long Truck::getId() const{
-    return _id;
+    return id;
 }
 long Truck::getCapacity() const{
-    return _capacity;
+    return capacity;
 }

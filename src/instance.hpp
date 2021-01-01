@@ -30,13 +30,13 @@ public:
     std::vector<Route> hillClimbing(const std::vector<Route> &initial_solution, long K) const;
 
 private:
-    long trucksAmount;
+    unsigned long trucksAmount;
     std::vector<Truck> trucksList;
 
-    long milkTypesAmount;
+    unsigned long milkTypesAmount;
     std::vector<MilkType> milkList;
 
-    long nodesAmount;
+    unsigned long nodesAmount;
     std::vector<std::unique_ptr<Node>> nodesList;
 
     long double **distanceBetweenNodes;

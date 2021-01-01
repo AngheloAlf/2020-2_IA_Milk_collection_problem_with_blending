@@ -3,10 +3,8 @@
 #include <cstdio>
 
 
-MilkType::MilkType(char typeId, long quota, long double profit){
-    this->typeId = typeId;
-    this->quota = quota;
-    this->profit = profit;
+MilkType::MilkType(char type_id, long milk_quota, long double milk_profit)
+: profit(milk_profit), quota(milk_quota), typeId(type_id){
 }
 
 void MilkType::print(bool newline) const{

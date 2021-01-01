@@ -1,5 +1,9 @@
 CC = clang++
-FLAGS = -std=c++17 -Wall -Wextra -Wshadow -Wpedantic
+STD = -std=c++17
+WARNINGS = -Wall -Wextra -Wshadow -Wpedantic # -Wsign-conversion -Wpadded
+WARNINGS_EVERYTHING = $(WARNINGS) -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-format-nonliteral -Wno-padded -Wno-old-style-cast
+FLAGS = $(STD) $(WARNINGS)
+# FLAGS = $(STD) $(WARNINGS_EVERYTHING)
 EXECUTABLE = MCPwB.elf
 
 FLAGS_RELEASE = -Os -DNDEBUG
@@ -37,4 +41,4 @@ clean:
 	rm -f $(EXECUTABLE) obj/*.o
 
 tidy:
-	clang-tidy -header-filter=.* -checks=-*,clang-diagnostic-*,clang-analyzer-*,bugprone*,modernize*,performance*,-modernize-pass-by-value,-modernize-use-auto,-modernize-use-using,-modernize-use-trailing-return-type,-clang-analyzer-valist.Uninitialized src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)
+	clang-tidy -header-filter=.* -checks=-*,readability-*,clang-diagnostic-*,clang-analyzer-*,bugprone*,modernize*,performance*,-modernize-pass-by-value,-modernize-use-auto,-modernize-use-using,-modernize-use-trailing-return-type,-clang-analyzer-valist.Uninitialized,-readability-braces-around-statements src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)

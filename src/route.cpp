@@ -5,14 +5,14 @@
 #include <algorithm>
 
 
-Route::Route(char milk_type, long nodes_amount)
-: milkType(milk_type), milkAmount(0){
+Route::Route(char milk_type, unsigned long nodes_amount)
+: truckId(0), capacityLeft(0), milkAmount(0), milkType(milk_type){
     nodes.reserve(nodes_amount);
 }
 
 void Route::print(bool newline) const{
     printf("<Route. truckId: %li, milkType: %c, milkAmount: %5li, capacityLeft: %4li, nodes: [", truckId, milkType, milkAmount, capacityLeft);
-    if(nodes.size() > 0){
+    if(!nodes.empty()){
         printf("%2li", nodes.at(0)->getId());
         for(unsigned long i = 1; i < nodes.size(); ++i){
             printf(", %2li", nodes.at(i)->getId());
@@ -73,7 +73,7 @@ void Route::removeFarm(std::vector<const Node *>::const_iterator &position){
 
     nodes.erase(position);
 }
-void Route::reverseFarmsOrder(std::vector<const Node *>::size_type left, std::vector<const Node *>::size_type right){
+void Route::reverseFarmsOrder(std::vector<const Node *>::difference_type left, std::vector<const Node *>::difference_type right){
     std::reverse(nodes.begin() + left, nodes.begin() + right);
 }
 
@@ -83,7 +83,7 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
     }
     long double result = 0;
     char current_milk_type = this->milkType;
-    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](const MilkType &milk){ /*printf("%c %c\n", current_milk_type, milk.id());*/ ; return current_milk_type == milk.getId(); });
+    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](const MilkType &milk){ return current_milk_type == milk.getId(); });
     assert(milk_iter != milk_list.end());
 
     long double profit_percentage = (*milk_iter).getMilkProfit();
