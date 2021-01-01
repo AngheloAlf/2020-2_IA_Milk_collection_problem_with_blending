@@ -27,9 +27,16 @@ public:
     void print(bool newline=false) const;
 
     [[nodiscard]]
+    const Node *getInitialNode() const;
+
+    [[nodiscard]]
     std::vector<Route> initialSolution() const;
     [[nodiscard]]
     long double evaluateSolution(const std::vector<Route> &sol) const;
+    [[nodiscard]]
+    long double calculateTransportCosts(const std::vector<Route> &sol) const;
+    [[nodiscard]]
+    long double calculateMilkProfits(const std::vector<Route> &sol) const;
 
     [[nodiscard]]
     std::vector<Route> hillClimbing(const std::vector<Route> &initial_solution, long K) const;

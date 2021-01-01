@@ -68,6 +68,11 @@ void Instance::print(bool /*unused*/) const{
 }
 
 
+const Node *Instance::getInitialNode() const{
+    return nodesList.at(0).get();
+}
+
+
 std::vector<Route> Instance::initialSolution() const{
     std::vector<Route> routes;
     routes.reserve(trucksAmount);
@@ -130,12 +135,31 @@ std::vector<Route> Instance::initialSolution() const{
 long double Instance::evaluateSolution(const std::vector<Route> &sol) const{
     long double result = 0;
 
+    const auto *initial_node = getInitialNode();
     for(const Route &route: sol){
-        result += route.evaluateRoute(nodesList.at(0).get(), milkList);
+        result += route.evaluateRoute(initial_node, milkList);
     }
 
     return result;
 }
+long double Instance::calculateTransportCosts(const std::vector<Route> &sol) const{
+    long double result = 0;
+
+    const auto *initial_node = getInitialNode();
+    for(const Route &route: sol){
+        result += route.calculateTransportCosts(initial_node);
+    }
+
+    return result;
+}
+long double Instance::calculateMilkProfits(const std::vector<Route> &sol) const{
+    long double result = 0;
+    for(const Route &route: sol){
+        result += route.calculateMilkProfits(milkList);
+    }
+    return result;
+}
+
 
 std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solution, long K) const{
     std::vector<Route> best_solution(initial_solution);

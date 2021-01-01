@@ -18,8 +18,11 @@ public:
     [[nodiscard]]
     char getMilkType() const;
     [[nodiscard]]
+    long getMilkAmount() const;
+    [[nodiscard]]
     long getCapacityLeft() const;
-    const std::vector<const Node *> &getNodes();
+    [[nodiscard]]
+    const std::vector<const Node *> &getNodes() const;
 
     void setTruck(const Truck &truck);
     void addFarm(const Node *farm);
@@ -29,6 +32,10 @@ public:
 
     [[nodiscard]]
     long double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;
+    [[nodiscard]]
+    long double calculateTransportCosts(const Node *initial_node) const;
+    [[nodiscard]]
+    long double calculateMilkProfits(const std::vector<MilkType> &milk_list) const;
 
 private:
     std::vector<const Node *> nodes; // TODO: considerar cambiar a std::list
