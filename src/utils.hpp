@@ -35,7 +35,7 @@ namespace Utils{
         return start;
     }
 
-    static bool debugPrintingEnabled = false;
+    extern bool debugPrintingEnabled;
     void debugPrint(const char *format, ...);
 }
 

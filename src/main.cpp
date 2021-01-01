@@ -14,11 +14,14 @@ int main(int argc, char **argv){
         fprintf(stderr, "Saliendo...\n");
         return 0;
     }
+    Utils::debugPrintingEnabled = false;
 
     char *filename = argv[1];
     long K = strtol(argv[2], nullptr, BASE10);
+    if(argc > 3){
+        Utils::debugPrintingEnabled = std::string(argv[3]) == "true"; 
+    }
 
-    Utils::debugPrintingEnabled = true;
     printf("\n");
 
     Instance inst(filename);

@@ -142,26 +142,23 @@ std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solu
     std::vector<Route> solution(initial_solution);
     long double best_quality = evaluateSolution(best_solution);
 
-    for(long i = 0; i < K; ++i){
-        bool global_local = true;
-        //long j = 0;
-        //printf("i: %li\n", i);
-        do{
-            global_local = true;
-            global_local &= extraLocalSearch(solution);
-            global_local &= intraLocalSearch(solution);
-            //printf("\t j: %6li - quality: %Lf\n", j, evaluateSolution(solution));
-            //++j;
-        } while(!global_local);
+    Utils::debugPrint("initial_quality: %Lf\n", best_quality);
+
+    bool global_local = false;
+    for(long i = 0; i < K && !global_local; ++i){
+        global_local = true;
+        global_local &= extraLocalSearch(solution);
+        global_local &= intraLocalSearch(solution);
 
         long double quality = evaluateSolution(solution);
+        Utils::debugPrint("i: %5li - quality: %Lf\n", i, quality);
         if(quality > best_quality){
-            //printf("i: %4li, j: %4li, quality: %Lf\n", i, j, quality);
             best_solution = solution;
             best_quality = quality;
         }
     }
-    
+    Utils::debugPrint("\n");
+
     return best_solution;
 }
 

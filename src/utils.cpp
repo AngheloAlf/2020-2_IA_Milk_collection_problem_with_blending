@@ -9,11 +9,14 @@ long double Utils::distance(long double x0, long double y0, long double x1,long 
     return sqrtl(x*x+y*y);
 }
 
+bool Utils::debugPrintingEnabled = false;
+
 void Utils::debugPrint(const char *format, ...){
-    if(debugPrintingEnabled){
-        va_list argptr;
-        va_start(argptr, format);
-        vfprintf(stderr, format, argptr);
-        va_end(argptr);
+    if(!debugPrintingEnabled){
+        return;
     }
+    va_list argptr;
+    va_start(argptr, format);
+    vfprintf(stderr, format, argptr);
+    va_end(argptr);
 }
