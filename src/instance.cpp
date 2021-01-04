@@ -210,7 +210,6 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 
         for(const long &src_route_index: order_of_selected_routes_src){
             Route &src_route = alternative.at(src_route_index);
-            const std::vector<const Node *> &nodes_list_src = src_route.getNodes();
 
             // Randomizar el orden en que se seleccionarán las rutas de destino (dst_route),
             // sin tener que randomizar el vector original.
@@ -224,48 +223,11 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                 }
 
                 Route &dst_route = alternative.at(dst_route_index);
-                const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
 
-                // Randomizar el orden en que se seleccionarán los nodos de la ruta de origen (node_src),
-                // sin tener que randomizar el vector original.
-                std::vector<long> order_of_selected_nodes_src(Utils::range(nodes_list_src.size()));
-                Utils::randomizeVector(order_of_selected_nodes_src);
-
-                for(const long &src_nodes_index: order_of_selected_nodes_src){
-                    const Node *node_src = nodes_list_src.at(src_nodes_index);
-
-                    // Evitar agregar el nodo a la ruta si este sobrecarga al camión.
-                    if(dst_route.getCapacityLeft() - (*node_src).getProduced() < 0){
-                        continue;
-                    }
-
-                    // Se saca el nodo de la ruta de la cual proviene.
-                    src_route.removeFarm(src_nodes_index);
-
-                    // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
-                    // sin tener que randomizar el vector original.
-                    std::vector<long> order_of_selected_nodes_dst(Utils::range(nodes_list_dst.size()));
-                    Utils::randomizeVector(order_of_selected_nodes_dst);
-
-                    for(const long &dst_nodes_index: order_of_selected_nodes_dst){
-                        // Se agrega el nodo a la ruta de destino en la posición correspondiente
-                        // y calcular la calidad de esta nueva solución.
-                        // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
-                        dst_route.addFarm(dst_nodes_index, node_src);
-                        long double new_quality = evaluateSolution(alternative);
-                        if(new_quality > old_quality){
-                            solution = alternative;
-                            return false;
-                        }
-
-                        // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
-                        // esa posición y reintentamos en la siguiente posición.
-                        dst_route.removeFarm(dst_nodes_index);
-                    }
-
-                    // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
-                    // el nodo en su ruta original, y en su posición original.
-                    src_route.addFarm(src_nodes_index, node_src);
+                bool did_quality_improved = tryMoveNodeBetweenRoutes(alternative, old_quality, src_route, dst_route);
+                if(did_quality_improved){
+                    solution = alternative;
+                    return false;
                 }
             }
         }
@@ -292,40 +254,100 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
 
         for(const long &route_index: order_of_selected_routes){
             Route &route = alternative.at(route_index);
-            const std::vector<const Node *> &nodes_list = route.getNodes();
 
-            // Randomizar el orden de los nodos iniciales con los que se realizará el 2-opt (pos_left),
-            // sin tener que randomizar el vector original.
-            std::vector<long> order_of_selected_nodes_left(Utils::range(nodes_list.size()));
-            Utils::randomizeVector(order_of_selected_nodes_left);
-
-            for(const long &pos_left: order_of_selected_nodes_left){
-                // Randomizar el orden de los nodos finales con los que se realizará el 2-opt (pos_right),
-                // sin tener que randomizar el vector original.
-                // El nodo final siempre estará "más a la derecha" que el nodo inicial.
-                std::vector<long> order_of_selected_nodes_right(Utils::range(pos_left+1, nodes_list.size()));
-                Utils::randomizeVector(order_of_selected_nodes_right);
-
-                for(const long &pos_right: order_of_selected_nodes_right){
-                    // Se realiza el 2-opt en el rango seleccionado. Si la solución es de mejor calidad
-                    // se actualiza la solución y se retorna (Alguna mejora).
-                    route.reverseFarmsOrder(pos_left, pos_right);
-                    long double new_quality = evaluateSolution(alternative);
-                    if(new_quality > old_quality){
-                        solution = alternative;
-                        return false;
-                    }
-
-                    // En caso de que la solución no sea de mejor calidad, se deshace el 2-opt
-                    // y se prueba con un rango distinto.
-                    route.reverseFarmsOrder(pos_left, pos_right);
-                }
+            bool did_quality_improved = try2OptInRoute(alternative, old_quality, route);
+            if(did_quality_improved){
+                solution = alternative;
+                return false;
             }
         }
     } while(!intra_local);
 
     // Ya se probaron todas las vecindades posibles y ninguna dio una solución de mejor calidad.
     return true;
+}
+
+
+bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &alternative, long double old_quality, Route &src_route, Route &dst_route) const{
+    const std::vector<const Node *> &nodes_list_src = src_route.getNodes();
+
+    // Randomizar el orden en que se seleccionarán los nodos de la ruta de origen (node_src),
+    // sin tener que randomizar el vector original.
+    std::vector<long> order_of_selected_nodes_src(Utils::range(nodes_list_src.size()));
+    Utils::randomizeVector(order_of_selected_nodes_src);
+
+    for(const long &src_nodes_index: order_of_selected_nodes_src){
+        const Node *node_src = nodes_list_src.at(src_nodes_index);
+
+        // Evitar agregar el nodo a la ruta si este sobrecarga al camión.
+        if(dst_route.getCapacityLeft() - (*node_src).getProduced() < 0){
+            continue;
+        }
+
+        // Se saca el nodo de la ruta de la cual proviene.
+        src_route.removeFarm(src_nodes_index);
+
+        const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
+
+        // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
+        // sin tener que randomizar el vector original.
+        std::vector<long> order_of_selected_nodes_dst(Utils::range(nodes_list_dst.size()));
+        Utils::randomizeVector(order_of_selected_nodes_dst);
+
+        for(const long &dst_nodes_index: order_of_selected_nodes_dst){
+            // Se agrega el nodo a la ruta de destino en la posición correspondiente
+            // y calcular la calidad de esta nueva solución.
+            // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
+            dst_route.addFarm(dst_nodes_index, node_src);
+            long double new_quality = evaluateSolution(alternative);
+            if(new_quality > old_quality){
+                return true;
+            }
+
+            // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
+            // esa posición y reintentamos en la siguiente posición.
+            dst_route.removeFarm(dst_nodes_index);
+        }
+
+        // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
+        // el nodo en su ruta original, y en su posición original.
+        src_route.addFarm(src_nodes_index, node_src);
+    }
+
+    return false;
+}
+
+bool Instance::try2OptInRoute(const std::vector<Route> &alternative, long double old_quality, Route &route) const{
+    const std::vector<const Node *> &nodes_list = route.getNodes();
+
+    // Randomizar el orden de los nodos iniciales con los que se realizará el 2-opt (pos_left),
+    // sin tener que randomizar el vector original.
+    std::vector<long> order_of_selected_nodes_left(Utils::range(nodes_list.size()));
+    Utils::randomizeVector(order_of_selected_nodes_left);
+
+    for(const long &pos_left: order_of_selected_nodes_left){
+        // Randomizar el orden de los nodos finales con los que se realizará el 2-opt (pos_right),
+        // sin tener que randomizar el vector original.
+        // El nodo final siempre estará "más a la derecha" que el nodo inicial.
+        std::vector<long> order_of_selected_nodes_right(Utils::range(pos_left+1, nodes_list.size()));
+        Utils::randomizeVector(order_of_selected_nodes_right);
+
+        for(const long &pos_right: order_of_selected_nodes_right){
+            // Se realiza el 2-opt en el rango seleccionado. Si la solución es de mejor calidad
+            // se actualiza la solución y se retorna (Alguna mejora).
+            route.reverseFarmsOrder(pos_left, pos_right);
+            long double new_quality = evaluateSolution(alternative);
+            if(new_quality > old_quality){
+                return true;
+            }
+
+            // En caso de que la solución no sea de mejor calidad, se deshace el 2-opt
+            // y se prueba con un rango distinto.
+            route.reverseFarmsOrder(pos_left, pos_right);
+        }
+    }
+
+    return false;
 }
 
 

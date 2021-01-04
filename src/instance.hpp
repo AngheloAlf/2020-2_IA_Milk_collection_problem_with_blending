@@ -59,6 +59,9 @@ private:
     // Movimiento 2-opt de la ruta consigo misma.
     bool intraLocalSearch(std::vector<Route> &solution) const;
 
+    bool tryMoveNodeBetweenRoutes(const std::vector<Route> &alternative, long double old_quality, Route &src_route, Route &dst_route) const;
+    bool try2OptInRoute(const std::vector<Route> &alternative, long double old_quality, Route &route) const;
+
     // Funciones de inicialización.
     void readTrucks(FILE *arch);
     void readMilk(FILE *arch);
