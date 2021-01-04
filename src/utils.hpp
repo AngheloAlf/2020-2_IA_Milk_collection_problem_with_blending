@@ -35,6 +35,12 @@ namespace Utils{
         return start;
     }
 
+    [[nodiscard]]
+    std::vector<long> range(long starting_index, long ending_index, long step=1);
+
+    [[nodiscard]]
+    std::vector<long> range(long elements_amount);
+
     extern bool debugPrintingEnabled;
     void debugPrint(const char *format, ...);
 }

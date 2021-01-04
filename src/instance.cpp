@@ -203,54 +203,80 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
     do{
         extra_local = true;
 
-        // TODO: randomizar orden.
-        for(auto i = alternative.begin(); i != alternative.end(); ++i){
-            Route &src = *i;
-            // TODO: randomizar orden.
-            for(auto j = alternative.begin(); j != alternative.end(); ++j){
-                if(i == j){
+        // Randomizar el orden en que se seleccionarán las rutas de origen (src_route),
+        // sin tener que randomizar el vector original.
+        std::vector<long> order_of_selected_routes_src(Utils::range(alternative.size()));
+        Utils::randomizeVector(order_of_selected_routes_src);
+
+        for(const long &src_route_index: order_of_selected_routes_src){
+            Route &src_route = alternative.at(src_route_index);
+            const std::vector<const Node *> &nodes_list_src = src_route.getNodes();
+
+            // Randomizar el orden en que se seleccionarán las rutas de destino (dst_route),
+            // sin tener que randomizar el vector original.
+            std::vector<long> order_of_selected_routes_dst(Utils::range(alternative.size()));
+            Utils::randomizeVector(order_of_selected_routes_dst);
+
+            for(const long &dst_route_index: order_of_selected_routes_dst){
+                // Verificar que la ruta destino no sea la misma que la ruta origen.
+                if(src_route_index == dst_route_index){
                     continue;
                 }
-                Route &dst = *j;
 
-                const std::vector<const Node *> &nodes_list_src = src.getNodes();
-                const std::vector<const Node *> &nodes_list_dst = dst.getNodes();
+                Route &dst_route = alternative.at(dst_route_index);
+                const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
 
-                // TODO: randomizar orden.
-                for(unsigned long node_i = 0; node_i < nodes_list_src.size(); ++node_i){
-                    auto src_iter = nodes_list_src.begin() + node_i;
-                    const Node *node_src = *src_iter;
+                // Randomizar el orden en que se seleccionarán los nodos de la ruta de origen (node_src),
+                // sin tener que randomizar el vector original.
+                std::vector<long> order_of_selected_nodes_src(Utils::range(nodes_list_src.size()));
+                Utils::randomizeVector(order_of_selected_nodes_src);
 
-                    // Evitar agregar el nodo a la ruta si esto sobrecarga al camión.
-                    if(dst.getCapacityLeft() - (*node_src).getProduced() < 0){
+                for(const long &src_nodes_index: order_of_selected_nodes_src){
+                    auto src_node_iter = nodes_list_src.begin() + src_nodes_index;
+                    const Node *node_src = *src_node_iter;
+
+                    // Evitar agregar el nodo a la ruta si este sobrecarga al camión.
+                    if(dst_route.getCapacityLeft() - (*node_src).getProduced() < 0){
                         continue;
                     }
 
-                    src.removeFarm(src_iter);
+                    // Se saca el nodo de la ruta de la cual proviene.
+                    src_route.removeFarm(src_node_iter);
 
-                    // TODO: randomizar orden.
-                    for(unsigned long node_j = 0; node_j < nodes_list_dst.size(); ++node_j){
-                        auto dst_iter = nodes_list_dst.begin();
-                        dst_iter += node_j;
+                    // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
+                    // sin tener que randomizar el vector original.
+                    std::vector<long> order_of_selected_nodes_dst(Utils::range(nodes_list_dst.size()));
+                    Utils::randomizeVector(order_of_selected_nodes_dst);
 
-                        dst.addFarm(dst_iter, node_src);
+                    for(const long &dst_nodes_index: order_of_selected_nodes_dst){
+                        auto dst_nodes_iter = nodes_list_dst.begin() + dst_nodes_index;
 
+                        // Agregar nodo a la ruta de destino en la posición correspondiente
+                        // y calcular la calidad de esta nueva solución.
+                        // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
+                        dst_route.addFarm(dst_nodes_iter, node_src);
                         long double new_quality = evaluateSolution(alternative);
                         if(new_quality > old_quality){
                             solution = alternative;
                             return false;
                         }
 
-                        dst_iter = nodes_list_dst.begin() + node_j;
-                        dst.removeFarm(dst_iter);
+                        // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
+                        // esa posición y reintentamos en la siguiente posición.
+                        dst_nodes_iter = nodes_list_dst.begin() + dst_nodes_index;
+                        dst_route.removeFarm(dst_nodes_iter);
                     }
 
-                    src.addFarm(src_iter, node_src);
+                    // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
+                    // el nodo en su ruta original, y en su posición original.
+                    src_node_iter = nodes_list_src.begin() + src_nodes_index;
+                    src_route.addFarm(src_node_iter, node_src);
                 }
             }
         }
     } while(!extra_local);
 
+    // Ya probamos todas las vecindades posibles y ninguna dio una solución de mejor calidad.
     return true;
 }
 
