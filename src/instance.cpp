@@ -251,7 +251,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                     for(const long &dst_nodes_index: order_of_selected_nodes_dst){
                         auto dst_nodes_iter = nodes_list_dst.begin() + dst_nodes_index;
 
-                        // Agregar nodo a la ruta de destino en la posición correspondiente
+                        // Se agrega el nodo a la ruta de destino en la posición correspondiente
                         // y calcular la calidad de esta nueva solución.
                         // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
                         dst_route.addFarm(dst_nodes_iter, node_src);
@@ -276,7 +276,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
         }
     } while(!extra_local);
 
-    // Ya probamos todas las vecindades posibles y ninguna dio una solución de mejor calidad.
+    // Ya se probaron todas las vecindades posibles y ninguna dio una solución de mejor calidad.
     return true;
 }
 
@@ -290,30 +290,46 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
     do{
         intra_local = true;
 
-        // TODO: randomizar orden.
-        for(auto i = alternative.begin(); i != alternative.end(); ++i){
-            Route &route = *i;
+        // Randomizar el orden en que se seleccionarán las rutas (route);
+        // sin tener que randomizar el vector original.
+        std::vector<long> order_of_selected_routes(Utils::range(alternative.size()));
+        Utils::randomizeVector(order_of_selected_routes);
 
+        for(const long &route_index: order_of_selected_routes){
+            Route &route = alternative.at(route_index);
             const std::vector<const Node *> &nodes_list = route.getNodes();
 
-            // TODO: randomizar orden.
-            for(unsigned long pos_left = 0; pos_left < nodes_list.size(); ++pos_left){
-                // TODO: randomizar orden.
-                for(unsigned long pos_right = pos_left+1; pos_right < nodes_list.size(); ++pos_right){
-                    route.reverseFarmsOrder(pos_left, pos_right);
+            // Randomizar el orden de los nodos iniciales con los que se realizará el 2-opt (pos_left),
+            // sin tener que randomizar el vector original.
+            std::vector<long> order_of_selected_nodes_left(Utils::range(nodes_list.size()));
+            Utils::randomizeVector(order_of_selected_nodes_left);
 
+            for(const long &pos_left: order_of_selected_nodes_left){
+                // Randomizar el orden de los nodos finales con los que se realizará el 2-opt (pos_right),
+                // sin tener que randomizar el vector original.
+                // El nodo final siempre estará "más a la derecha" que el nodo inicial.
+                std::vector<long> order_of_selected_nodes_right(Utils::range(pos_left+1, nodes_list.size()));
+                Utils::randomizeVector(order_of_selected_nodes_right);
+
+                for(const long &pos_right: order_of_selected_nodes_right){
+                    // Se realiza el 2-opt en el rango seleccionado. Si la solución es de mejor calidad
+                    // se actualiza la solución y se retorna (Alguna mejora).
+                    route.reverseFarmsOrder(pos_left, pos_right);
                     long double new_quality = evaluateSolution(alternative);
                     if(new_quality > old_quality){
                         solution = alternative;
                         return false;
                     }
 
+                    // En caso de que la solución no sea de mejor calidad, se deshace el 2-opt
+                    // y se prueba con un rango distinto.
                     route.reverseFarmsOrder(pos_left, pos_right);
                 }
             }
         }
     } while(!intra_local);
 
+    // Ya se probaron todas las vecindades posibles y ninguna dio una solución de mejor calidad.
     return true;
 }
 
