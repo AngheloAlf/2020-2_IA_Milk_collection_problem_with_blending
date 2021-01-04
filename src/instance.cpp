@@ -232,8 +232,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                 Utils::randomizeVector(order_of_selected_nodes_src);
 
                 for(const long &src_nodes_index: order_of_selected_nodes_src){
-                    auto src_node_iter = nodes_list_src.begin() + src_nodes_index;
-                    const Node *node_src = *src_node_iter;
+                    const Node *node_src = nodes_list_src.at(src_nodes_index);
 
                     // Evitar agregar el nodo a la ruta si este sobrecarga al camión.
                     if(dst_route.getCapacityLeft() - (*node_src).getProduced() < 0){
@@ -241,7 +240,7 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                     }
 
                     // Se saca el nodo de la ruta de la cual proviene.
-                    src_route.removeFarm(src_node_iter);
+                    src_route.removeFarm(src_nodes_index);
 
                     // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
                     // sin tener que randomizar el vector original.
@@ -249,12 +248,10 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                     Utils::randomizeVector(order_of_selected_nodes_dst);
 
                     for(const long &dst_nodes_index: order_of_selected_nodes_dst){
-                        auto dst_nodes_iter = nodes_list_dst.begin() + dst_nodes_index;
-
                         // Se agrega el nodo a la ruta de destino en la posición correspondiente
                         // y calcular la calidad de esta nueva solución.
                         // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
-                        dst_route.addFarm(dst_nodes_iter, node_src);
+                        dst_route.addFarm(dst_nodes_index, node_src);
                         long double new_quality = evaluateSolution(alternative);
                         if(new_quality > old_quality){
                             solution = alternative;
@@ -263,14 +260,12 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 
                         // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
                         // esa posición y reintentamos en la siguiente posición.
-                        dst_nodes_iter = nodes_list_dst.begin() + dst_nodes_index;
-                        dst_route.removeFarm(dst_nodes_iter);
+                        dst_route.removeFarm(dst_nodes_index);
                     }
 
                     // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
                     // el nodo en su ruta original, y en su posición original.
-                    src_node_iter = nodes_list_src.begin() + src_nodes_index;
-                    src_route.addFarm(src_node_iter, node_src);
+                    src_route.addFarm(src_nodes_index, node_src);
                 }
             }
         }

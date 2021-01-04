@@ -26,9 +26,9 @@ public:
 
     void setTruck(const Truck &truck);
     void addFarm(const Node *farm);
-    void addFarm(std::vector<const Node *>::const_iterator &position, const Node *farm);
-    void removeFarm(std::vector<const Node *>::const_iterator &position);
-    void reverseFarmsOrder(std::vector<const Node *>::difference_type left, std::vector<const Node *>::difference_type right);
+    void addFarm(long position, const Node *farm);
+    void removeFarm(long position);
+    void reverseFarmsOrder(long left, long right);
 
     [[nodiscard]]
     long double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;

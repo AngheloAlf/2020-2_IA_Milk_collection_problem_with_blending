@@ -55,9 +55,13 @@ void Route::addFarm(const Node *farm){
         milkType = (*farm).getQuality();
     }
 }
-void Route::addFarm(std::vector<const Node *>::const_iterator &position, const Node *farm){
+void Route::addFarm(long position, const Node *farm){
+    assert(position >= 0);
+    assert(position < nodes.size());
     assert((*farm).getQuality() != '-');
-    nodes.insert(position, farm);
+
+    auto iter = nodes.begin() + position;
+    nodes.insert(iter, farm);
     capacityLeft -= (*farm).getProduced();
     milkAmount += (*farm).getProduced();
 
@@ -68,14 +72,19 @@ void Route::addFarm(std::vector<const Node *>::const_iterator &position, const N
         milkType = (*farm).getQuality();
     }
 }
-void Route::removeFarm(std::vector<const Node *>::const_iterator &position){
-    capacityLeft += (**position).getProduced();
-    milkAmount -= (**position).getProduced();
+void Route::removeFarm(long position){
+    assert(position >= 0);
+    assert(position < nodes.size());
 
-    nodes_counter[(**position).getQuality()-'A'] -= 1;
+    auto iter = nodes.begin() + position;
+
+    capacityLeft += (**iter).getProduced();
+    milkAmount -= (**iter).getProduced();
+
+    nodes_counter[(**iter).getQuality()-'A'] -= 1;
 
     // Si la calidad de la leche de esa granja es la peor es posible que el conjunto mejore al removerla.
-    if((**position).getQuality() == milkType && nodes_counter[(**position).getQuality()-'A'] == 0){
+    if((**iter).getQuality() == milkType && nodes_counter[(**iter).getQuality()-'A'] == 0){
         char i = milkType;
         milkType = 0;
         for(--i; i >= 'A'; --i){
@@ -86,9 +95,9 @@ void Route::removeFarm(std::vector<const Node *>::const_iterator &position){
         }
     }
 
-    nodes.erase(position);
+    nodes.erase(iter);
 }
-void Route::reverseFarmsOrder(std::vector<const Node *>::difference_type left, std::vector<const Node *>::difference_type right){
+void Route::reverseFarmsOrder(long left, long right){
     std::reverse(nodes.begin() + left, nodes.begin() + right);
 }
 
