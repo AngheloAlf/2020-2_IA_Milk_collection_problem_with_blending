@@ -195,43 +195,37 @@ std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solu
 
 // Mover un nodo de una ruta a las demás rutas.
 bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
-    bool extra_local = false;
-
     long double old_quality = evaluateSolution(solution);
     std::vector<Route> alternative(solution);
 
-    do{
-        extra_local = true;
+    // Randomizar el orden en que se seleccionarán las rutas de origen (src_route),
+    // sin tener que randomizar el vector original.
+    std::vector<long> order_of_selected_routes_src(Utils::range(alternative.size()));
+    Utils::randomizeVector(order_of_selected_routes_src);
 
-        // Randomizar el orden en que se seleccionarán las rutas de origen (src_route),
+    for(const long &src_route_index: order_of_selected_routes_src){
+        Route &src_route = alternative.at(src_route_index);
+
+        // Randomizar el orden en que se seleccionarán las rutas de destino (dst_route),
         // sin tener que randomizar el vector original.
-        std::vector<long> order_of_selected_routes_src(Utils::range(alternative.size()));
-        Utils::randomizeVector(order_of_selected_routes_src);
+        std::vector<long> order_of_selected_routes_dst(Utils::range(alternative.size()));
+        Utils::randomizeVector(order_of_selected_routes_dst);
 
-        for(const long &src_route_index: order_of_selected_routes_src){
-            Route &src_route = alternative.at(src_route_index);
+        for(const long &dst_route_index: order_of_selected_routes_dst){
+            // Verificar que la ruta destino no sea la misma que la ruta origen.
+            if(src_route_index == dst_route_index){
+                continue;
+            }
 
-            // Randomizar el orden en que se seleccionarán las rutas de destino (dst_route),
-            // sin tener que randomizar el vector original.
-            std::vector<long> order_of_selected_routes_dst(Utils::range(alternative.size()));
-            Utils::randomizeVector(order_of_selected_routes_dst);
+            Route &dst_route = alternative.at(dst_route_index);
 
-            for(const long &dst_route_index: order_of_selected_routes_dst){
-                // Verificar que la ruta destino no sea la misma que la ruta origen.
-                if(src_route_index == dst_route_index){
-                    continue;
-                }
-
-                Route &dst_route = alternative.at(dst_route_index);
-
-                bool did_quality_improved = tryMoveNodeBetweenRoutes(alternative, old_quality, src_route, dst_route);
-                if(did_quality_improved){
-                    solution = alternative;
-                    return false;
-                }
+            bool did_quality_improved = tryMoveNodeBetweenRoutes(alternative, old_quality, src_route, dst_route);
+            if(did_quality_improved){
+                solution = alternative;
+                return false;
             }
         }
-    } while(!extra_local);
+    }
 
     // Ya se probaron todas las vecindades posibles y ninguna dio una solución de mejor calidad.
     return true;
@@ -239,29 +233,23 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 
 // Movimiento 2-opt de la ruta consigo misma.
 bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
-    bool intra_local = false;
-
     long double old_quality = evaluateSolution(solution);
     std::vector<Route> alternative(solution);
 
-    do{
-        intra_local = true;
+    // Randomizar el orden en que se seleccionarán las rutas (route);
+    // sin tener que randomizar el vector original.
+    std::vector<long> order_of_selected_routes(Utils::range(alternative.size()));
+    Utils::randomizeVector(order_of_selected_routes);
 
-        // Randomizar el orden en que se seleccionarán las rutas (route);
-        // sin tener que randomizar el vector original.
-        std::vector<long> order_of_selected_routes(Utils::range(alternative.size()));
-        Utils::randomizeVector(order_of_selected_routes);
+    for(const long &route_index: order_of_selected_routes){
+        Route &route = alternative.at(route_index);
 
-        for(const long &route_index: order_of_selected_routes){
-            Route &route = alternative.at(route_index);
-
-            bool did_quality_improved = try2OptInRoute(alternative, old_quality, route);
-            if(did_quality_improved){
-                solution = alternative;
-                return false;
-            }
+        bool did_quality_improved = try2OptInRoute(alternative, old_quality, route);
+        if(did_quality_improved){
+            solution = alternative;
+            return false;
         }
-    } while(!intra_local);
+    }
 
     // Ya se probaron todas las vecindades posibles y ninguna dio una solución de mejor calidad.
     return true;
