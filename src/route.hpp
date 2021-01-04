@@ -31,7 +31,7 @@ public:
     void reverseFarmsOrder(long left, long right);
 
     [[nodiscard]]
-    long double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const;
+    long double evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list);
     [[nodiscard]]
     long double calculateTransportCosts(const Node *initial_node) const;
     [[nodiscard]]
@@ -44,6 +44,8 @@ private:
     long capacityLeft;
     long milkAmount;
     char milkType;
+    bool changed = true;
+    long double quality = 0;
 };
 
 #endif

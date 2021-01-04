@@ -35,3 +35,4 @@
 # Custom
 *.elf
 *.tmp
+perf.data*

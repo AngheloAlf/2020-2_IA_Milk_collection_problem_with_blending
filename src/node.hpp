@@ -22,6 +22,8 @@ public:
 
     [[nodiscard]]
     long double distanceTo(const Node &other) const;
+    [[nodiscard]]
+    long double cachedDistance(const Node &other) const;
 
 private:
     long id;

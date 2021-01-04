@@ -1,6 +1,7 @@
 #include "node.hpp"
 
 #include <cstdio>
+#include <cassert>
 #include "utils.hpp"
 
 Node::Node(long node_id, long node_x, long node_y, char type_produced, long amount_produced)
@@ -26,8 +27,9 @@ void Node::setDistanceMatrix(long double **&distance_matrix){
 }
 
 long double Node::distanceTo(const Node &other) const{
-    if(distanceMatrix != nullptr){
-        return distanceMatrix[id-1][other.id-1];
-    }
     return Utils::distance(x, y, other.x, other.y);
+}
+long double Node::cachedDistance(const Node &other) const{
+    assert(distanceMatrix != nullptr);
+    return distanceMatrix[id][other.id];
 }

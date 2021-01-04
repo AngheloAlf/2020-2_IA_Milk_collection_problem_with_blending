@@ -54,6 +54,7 @@ void Route::addFarm(const Node *farm){
     if((*farm).getQuality() > milkType){
         milkType = (*farm).getQuality();
     }
+    changed = true;
 }
 void Route::addFarm(long position, const Node *farm){
     assert(position >= 0);
@@ -71,6 +72,7 @@ void Route::addFarm(long position, const Node *farm){
     if((*farm).getQuality() > milkType){
         milkType = (*farm).getQuality();
     }
+    changed = true;
 }
 void Route::removeFarm(long position){
     assert(position >= 0);
@@ -96,9 +98,11 @@ void Route::removeFarm(long position){
     }
 
     nodes.erase(iter);
+    changed = true;
 }
 void Route::reverseFarmsOrder(long left, long right){
     std::reverse(nodes.begin() + left, nodes.begin() + right);
+    changed = true;
 }
 
 
@@ -108,9 +112,12 @@ const MilkType &findMilkType(const std::vector<MilkType> &milk_list, char curren
     return *milk_iter;
 }
 
-long double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list) const{
+long double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list){
     if(capacityLeft < 0){
         return 0;
+    }
+    if(!changed){
+        return quality;
     }
     long double result = 0;
 
@@ -126,13 +133,14 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
     const Node *prev_node = initial_node;
     for(const auto &node: nodes){
         result += (*node).getProduced() * profit_percentage;
-        result -= (*node).distanceTo(*prev_node);
+        result -= (*node).cachedDistance(*prev_node);
 
         prev_node = node;
     }
 
-    result -= (*prev_node).distanceTo(*initial_node);
-    return result;
+    result -= (*prev_node).cachedDistance(*initial_node);
+    changed = false;
+    return quality = result;
 }
 
 long double Route::calculateTransportCosts(const Node *initial_node) const{
@@ -140,12 +148,12 @@ long double Route::calculateTransportCosts(const Node *initial_node) const{
 
     const Node *prev_node = initial_node;
     for(const auto &node: nodes){
-        result += (*node).distanceTo(*prev_node);
+        result += (*node).cachedDistance(*prev_node);
 
         prev_node = node;
     }
 
-    result += (*prev_node).distanceTo(*initial_node);
+    result += (*prev_node).cachedDistance(*initial_node);
     return result;
 }
 

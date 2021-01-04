@@ -16,24 +16,24 @@ Instance::Instance(char *filename){
     fclose(arch);
 
     assert(nodesAmount != 0);
-    distanceBetweenNodes = (long double **)malloc(sizeof(long double *)*nodesAmount);
+    distanceBetweenNodes = (long double **)malloc(sizeof(long double *)*(nodesAmount+1));
     assert(distanceBetweenNodes != nullptr);
-    for(unsigned long i = 0; i < nodesAmount; ++i){
-        distanceBetweenNodes[i] = (long double *)malloc(sizeof(long double)*nodesAmount);
+    for(unsigned long i = 1; i < nodesAmount+1; ++i){
+        distanceBetweenNodes[i] = (long double *)malloc(sizeof(long double)*(nodesAmount+1));
         assert(distanceBetweenNodes[i] != nullptr);
-        auto *node_i = nodesList.at(i).get();
+        auto *node_i = nodesList.at(i-1).get();
         // Los nodos tienen distancia cero a si mismos.
         distanceBetweenNodes[i][i] = 0;
 
-        for(unsigned long j = i+1; j < nodesAmount; ++j){
-            long double dist = (*node_i).distanceTo(*nodesList.at(j).get());
+        for(unsigned long j = i+1+1; j < nodesAmount+1; ++j){
+            long double dist = (*node_i).distanceTo(*nodesList.at(j-1).get());
             distanceBetweenNodes[i][j] = dist;
         }
 
         (*node_i).setDistanceMatrix(distanceBetweenNodes);
     }
     // Calcula diagonal inferior.
-    for(unsigned long i = 1; i < nodesAmount; ++i){
+    for(unsigned long i = 1+1; i < nodesAmount+1; ++i){
         for(unsigned long j = 0; j < i; ++j){
             distanceBetweenNodes[i][j] = distanceBetweenNodes[j][i];
         }
@@ -41,7 +41,7 @@ Instance::Instance(char *filename){
 }
 
 Instance::~Instance(){
-    for(unsigned long i = 0; i < nodesAmount; ++i){
+    for(unsigned long i = 1; i < nodesAmount+1; ++i){
         free(distanceBetweenNodes[i]);
     }
     free(distanceBetweenNodes);
@@ -138,11 +138,11 @@ std::vector<Route> Instance::initialSolution() const{
     return routes;
 }
 
-long double Instance::evaluateSolution(const std::vector<Route> &sol) const{
+long double Instance::evaluateSolution(std::vector<Route> &sol) const{
     long double result = 0;
 
     const auto *initial_node = getInitialNode();
-    for(const Route &route: sol){
+    for(Route &route: sol){
         result += route.evaluateRoute(initial_node, milkList);
     }
 
@@ -256,7 +256,7 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
 }
 
 
-bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &alternative, long double old_quality, Route &src_route, Route &dst_route) const{
+bool Instance::tryMoveNodeBetweenRoutes(std::vector<Route> &alternative, long double old_quality, Route &src_route, Route &dst_route) const{
     const std::vector<const Node *> &nodes_list_src = src_route.getNodes();
 
     // Randomizar el orden en que se seleccionarán los nodos de la ruta de origen (node_src),
@@ -305,7 +305,7 @@ bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &alternative, l
     return false;
 }
 
-bool Instance::try2OptInRoute(const std::vector<Route> &alternative, long double old_quality, Route &route) const{
+bool Instance::try2OptInRoute(std::vector<Route> &alternative, long double old_quality, Route &route) const{
     const std::vector<const Node *> &nodes_list = route.getNodes();
 
     // Randomizar el orden de los nodos iniciales con los que se realizará el 2-opt (pos_left),

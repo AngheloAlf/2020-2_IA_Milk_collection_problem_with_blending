@@ -32,7 +32,7 @@ public:
     [[nodiscard]]
     std::vector<Route> initialSolution() const;
     [[nodiscard]]
-    long double evaluateSolution(const std::vector<Route> &sol) const;
+    long double evaluateSolution(std::vector<Route> &sol) const;
     [[nodiscard]]
     long double calculateTransportCosts(const std::vector<Route> &sol) const;
     [[nodiscard]]
@@ -59,8 +59,8 @@ private:
     // Movimiento 2-opt de la ruta consigo misma.
     bool intraLocalSearch(std::vector<Route> &solution) const;
 
-    bool tryMoveNodeBetweenRoutes(const std::vector<Route> &alternative, long double old_quality, Route &src_route, Route &dst_route) const;
-    bool try2OptInRoute(const std::vector<Route> &alternative, long double old_quality, Route &route) const;
+    bool tryMoveNodeBetweenRoutes(std::vector<Route> &alternative, long double old_quality, Route &src_route, Route &dst_route) const;
+    bool try2OptInRoute(std::vector<Route> &alternative, long double old_quality, Route &route) const;
 
     // Funciones de inicialización.
     void readTrucks(FILE *arch);
