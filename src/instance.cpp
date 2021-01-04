@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cassert>
+#include <cmath>
 #include "utils.hpp"
 
 
@@ -25,8 +26,11 @@ Instance::Instance(char *filename){
         // Los nodos tienen distancia cero a si mismos.
         distanceBetweenNodes[i][i] = 0;
 
-        for(unsigned long j = i+1+1; j < nodesAmount+1; ++j){
+        for(unsigned long j = i+1; j < nodesAmount+1; ++j){
             long double dist = (*node_i).distanceTo(*nodesList.at(j-1).get());
+            assert(!std::isnan(dist));
+            assert(!std::isinf(dist));
+            assert(std::isfinite(dist));
             distanceBetweenNodes[i][j] = dist;
         }
 
@@ -34,7 +38,7 @@ Instance::Instance(char *filename){
     }
     // Calcula diagonal inferior.
     for(unsigned long i = 1+1; i < nodesAmount+1; ++i){
-        for(unsigned long j = 0; j < i; ++j){
+        for(unsigned long j = 1; j < i; ++j){
             distanceBetweenNodes[i][j] = distanceBetweenNodes[j][i];
         }
     }
@@ -64,8 +68,14 @@ void Instance::print(bool /*unused*/) const{
     }
     printf("\n");
 
-    for(unsigned long i = 0; i < nodesAmount; ++i){
-        for(unsigned long j = 0; j < nodesAmount; ++j){
+    printf("      ");
+    for(unsigned long i = 1; i < nodesAmount+1; ++i){
+        printf("%5lu ", i);
+    }
+    printf("\n");
+    for(unsigned long i = 1; i < nodesAmount+1; ++i){
+        printf("%5lu ", i);
+        for(unsigned long j = 1; j < nodesAmount+1; ++j){
             printf("%5.1Lf ", distanceBetweenNodes[i][j]);
         }
         printf("\n");

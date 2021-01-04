@@ -1,12 +1,23 @@
 #include "utils.hpp"
 
+#include <cassert>
+#include <cerrno>
+#include <cfenv>
 #include <cmath>
 
 long double Utils::distance(long double x0, long double y0, long double x1,long double y1){
     long double x = x1-x0;
     long double y = y1-y0;
 
-    return sqrtl(x*x+y*y);
+    long double dist = std::sqrt(x*x + y*y);
+    assert(!std::isnan(dist));
+    assert(!std::isinf(dist));
+    assert(std::isfinite(dist));
+
+    assert(errno != EDOM);
+    assert(!std::fetestexcept(FE_INVALID));
+
+    return dist;
 }
 
 std::vector<long> Utils::range(long starting_index, long ending_index, long step){

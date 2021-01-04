@@ -31,5 +31,9 @@ long double Node::distanceTo(const Node &other) const{
 }
 long double Node::cachedDistance(const Node &other) const{
     assert(distanceMatrix != nullptr);
-    return distanceMatrix[id][other.id];
+    long double dist = distanceMatrix[id][other.id];
+    assert(!std::isnan(dist));
+    assert(!std::isinf(dist));
+    assert(std::isfinite(dist));
+    return dist;
 }

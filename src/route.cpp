@@ -1,9 +1,9 @@
 #include "route.hpp"
 
-#include <cstdio>
-#include <cassert>
 #include <algorithm>
-
+#include <cassert>
+#include <cstdio>
+#include <cmath>
 
 Route::Route(char milk_type, unsigned long nodes_amount, unsigned long milk_types_amount)
 : truckId(0), capacityLeft(0), milkAmount(0), milkType(milk_type){
@@ -139,11 +139,13 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
 
         prev_node = node_ptr;
     }
-
     distance_penalty += (*prev_node).cachedDistance(*initial_node);
 
     changed = false;
     quality = milk_produced * profit_percentage - distance_penalty;
+    assert(!std::isnan(quality));
+    assert(!std::isinf(quality));
+    assert(std::isfinite(quality));
     return quality;
 }
 
@@ -158,6 +160,11 @@ long double Route::calculateTransportCosts(const Node *initial_node) const{
     }
 
     distance_penalty += (*prev_node).cachedDistance(*initial_node);
+
+    assert(!std::isnan(distance_penalty));
+    assert(!std::isinf(distance_penalty));
+    assert(std::isfinite(distance_penalty));
+
     return distance_penalty;
 }
 
@@ -170,5 +177,10 @@ long double Route::calculateMilkProfits(const std::vector<MilkType> &milk_list) 
         milk_produced += (*node).getProduced();
     }
 
-    return milk_produced * profit_percentage;
+    long double result = milk_produced * profit_percentage;
+
+    assert(!std::isnan(result));
+    assert(!std::isinf(result));
+    assert(std::isfinite(result));
+    return result;
 }
