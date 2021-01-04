@@ -1,16 +1,21 @@
 CC = clang++
 STD = -std=c++17
-WARNINGS = -Wall -Wextra -Wshadow -Wpedantic # -Wsign-conversion -Wpadded
+WARNINGS = -Wall -Wextra -Wshadow -Wpedantic# -Wpadded -Wsign-conversion
 WARNINGS_EVERYTHING = $(WARNINGS) -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-format-nonliteral -Wno-padded -Wno-old-style-cast
 FLAGS = -pipe $(STD) $(WARNINGS)
-# FLAGS = $(STD) $(WARNINGS_EVERYTHING)
+# FLAGS = -pipe $(STD) $(WARNINGS_EVERYTHING)
 EXECUTABLE = MCPwB.elf
 
 FLAGS_RELEASE = -O2 -DNDEBUG -march=native
-FLAGS_DEBUG = -g -g3 -Og
+FLAGS_DEBUG = -Og -g -g3
 
-# FLAGS_OTHER = $(FLAGS_RELEASE)
-FLAGS_OTHER = $(FLAGS_DEBUG)
+MODE = DEBUG
+ifeq ($(MODE), DEBUG)
+	FLAGS_OTHER = $(FLAGS_DEBUG)
+else
+	FLAGS_OTHER = $(FLAGS_RELEASE)
+endif
+
 
 all: obj/main.o obj/instance.o obj/milk_type.o obj/node.o obj/truck.o obj/route.o obj/utils.o
 	$(CC) $(FLAGS) $(FLAGS_OTHER) obj/*.o -o $(EXECUTABLE)

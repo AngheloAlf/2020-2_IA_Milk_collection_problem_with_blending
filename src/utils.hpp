@@ -39,7 +39,7 @@ namespace Utils{
     std::vector<long> range(long starting_index, long ending_index, long step=1);
 
     [[nodiscard]]
-    std::vector<long> range(long elements_amount);
+    std::vector<long> range(unsigned long elements_amount);
 
     extern bool debugPrintingEnabled;
     void debugPrint(const char *format, ...);

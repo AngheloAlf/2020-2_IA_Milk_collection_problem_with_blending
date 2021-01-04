@@ -40,12 +40,12 @@ public:
 private:
     std::vector<const Node *> nodes; // TODO: considerar cambiar a std::list
     std::vector<unsigned long> nodes_counter;
+    long double quality = 0;
     long truckId;
     long capacityLeft;
     long milkAmount;
     char milkType;
     bool changed = true;
-    long double quality = 0;
 };
 
 #endif

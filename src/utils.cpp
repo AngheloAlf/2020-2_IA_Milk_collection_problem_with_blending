@@ -29,8 +29,8 @@ std::vector<long> Utils::range(long starting_index, long ending_index, long step
     return vec;
 }
 
-std::vector<long> Utils::range(long elements_amount){
-    return range(0, elements_amount, 1);
+std::vector<long> Utils::range(unsigned long elements_amount){
+    return range(0, (long)elements_amount, 1);
 }
 
 bool Utils::debugPrintingEnabled = false;
