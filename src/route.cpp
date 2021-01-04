@@ -119,7 +119,8 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
     if(!changed){
         return quality;
     }
-    long double result = 0;
+    long milk_produced = 0;
+    long double distance_penalty = 0;
 
     auto current_milk_type = findMilkType(milk_list, this->milkType);
 
@@ -131,41 +132,43 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
     }
 
     const Node *prev_node = initial_node;
-    for(const auto &node: nodes){
-        result += (*node).getProduced() * profit_percentage;
-        result -= (*node).cachedDistance(*prev_node);
+    for(const auto &node_ptr: nodes){
+        const auto &node = *node_ptr;
+        milk_produced += node.getProduced();
+        distance_penalty += node.cachedDistance(*prev_node);
 
-        prev_node = node;
+        prev_node = node_ptr;
     }
 
-    result -= (*prev_node).cachedDistance(*initial_node);
+    distance_penalty += (*prev_node).cachedDistance(*initial_node);
+
     changed = false;
-    return quality = result;
+    quality = milk_produced * profit_percentage - distance_penalty;
+    return quality;
 }
 
 long double Route::calculateTransportCosts(const Node *initial_node) const{
-    long double result = 0;
+    long double distance_penalty = 0;
 
     const Node *prev_node = initial_node;
     for(const auto &node: nodes){
-        result += (*node).cachedDistance(*prev_node);
+        distance_penalty += (*node).cachedDistance(*prev_node);
 
         prev_node = node;
     }
 
-    result += (*prev_node).cachedDistance(*initial_node);
-    return result;
+    distance_penalty += (*prev_node).cachedDistance(*initial_node);
+    return distance_penalty;
 }
 
 long double Route::calculateMilkProfits(const std::vector<MilkType> &milk_list) const{
-    long double result = 0;
+    long milk_produced = 0;
 
     auto current_milk_type = findMilkType(milk_list, this->milkType);
-
     long double profit_percentage = current_milk_type.getMilkProfit();
     for(const auto &node: nodes){
-        result += (*node).getProduced() * profit_percentage;
+        milk_produced += (*node).getProduced();
     }
 
-    return result;
+    return milk_produced * profit_percentage;
 }
