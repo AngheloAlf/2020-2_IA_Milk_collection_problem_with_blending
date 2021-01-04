@@ -57,7 +57,7 @@ void Route::addFarm(const Node *farm){
 }
 void Route::addFarm(long position, const Node *farm){
     assert(position >= 0);
-    assert(position < nodes.size());
+    assert((unsigned long)position <= nodes.size());
     assert((*farm).getQuality() != '-');
 
     auto iter = nodes.begin() + position;
@@ -74,7 +74,7 @@ void Route::addFarm(long position, const Node *farm){
 }
 void Route::removeFarm(long position){
     assert(position >= 0);
-    assert(position < nodes.size());
+    assert((unsigned long)position < nodes.size());
 
     auto iter = nodes.begin() + position;
 
