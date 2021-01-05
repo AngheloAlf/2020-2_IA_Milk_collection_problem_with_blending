@@ -50,7 +50,7 @@ void Route::addFarm(const Node *farm){
 
     nodes_counter[(*farm).getQuality()-'A'] += 1;
 
-    // Si la calidad de la leche de esta granja es peor, el conjunto de esta ruta empeora.
+    // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
     if((*farm).getQuality() > milkType){
         milkType = (*farm).getQuality();
     }
@@ -68,7 +68,7 @@ void Route::addFarm(long position, const Node *farm){
 
     nodes_counter[(*farm).getQuality()-'A'] += 1;
 
-    // Si la calidad de la leche de esta granja es peor, el conjunto de esta ruta empeora.
+    // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
     if((*farm).getQuality() > milkType){
         milkType = (*farm).getQuality();
     }
@@ -85,7 +85,7 @@ void Route::removeFarm(long position){
 
     nodes_counter[(**iter).getQuality()-'A'] -= 1;
 
-    // Si la calidad de la leche de esa granja es la peor es posible que el conjunto mejore al removerla.
+    // Si la calidad de la leche de esa granja es la peor, es posible que el conjunto mejore al removerla.
     if((**iter).getQuality() == milkType && nodes_counter[(**iter).getQuality()-'A'] == 0){
         char i = milkType;
         milkType = 0;
@@ -107,9 +107,11 @@ void Route::reverseFarmsOrder(long left, long right){
 
 
 long double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list){
+    // Restricción: No se debe superar la capacidad máxima de los camiones.
     if(capacityLeft < 0){
         return 0;
     }
+    // Si la ruta no ha cambiado, evitamos recalcular y usamos el valor almacenado.
     if(!changed){
         return quality;
     }
@@ -120,11 +122,12 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
 
     long double profit_percentage = current_milk_type.getMilkProfit();
     long quota = current_milk_type.getMilkQuota();
-    // Si la cuota de la planta procesadora no se cumple, la ruta aporta 0.
+    // Restricción: Se debe superar la cuota mínima de la planta.
     if(milkAmount < quota){
         return 0;
     }
 
+    // Restricción: Un camión sale de la planta procesadora y vuelve a ella al final del día.
     const Node *prev_node = initial_node;
     for(const auto &node_ptr: nodes){
         distance_penalty += (*node_ptr).cachedDistance(*prev_node);

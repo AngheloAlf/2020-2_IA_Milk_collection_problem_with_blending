@@ -152,18 +152,19 @@ long double Instance::evaluateSolution(std::vector<Route> &sol) const{
     long double result = 0;
 
     // Verificar que todas las cuota de la planta procesadora se cumplan.
-    std::vector<long> quotas;
-    quotas.reserve(milkList.size());
+    static std::vector<long> quotas_aux;
+    quotas_aux.reserve(milkList.size());
+    quotas_aux.clear();
     for(const auto &milk: milkList){
-        quotas.emplace_back(milk.getMilkQuota());
+        quotas_aux.push_back(milk.getMilkQuota());
     }
     for(const auto &route: sol){
         char milk_type = route.getMilkType();
-        quotas[milk_type - 'A'] -= route.getMilkAmount();
+        quotas_aux[milk_type - 'A'] -= route.getMilkAmount();
     }
-    for(const auto &q: quotas){
+    for(const auto &q: quotas_aux){
         if(q > 0){
-            // Si alguna cuota no se cumple.
+            // Restricción: El total de la leche de cada tipo (haya sido mezclada o no) debe superar la cuota mínima de la planta procesadora.
             return 0;
         }
     }
