@@ -38,7 +38,7 @@ public:
     long double calculateMilkProfits(const std::vector<MilkType> &milk_list) const;
 
 private:
-    std::vector<const Node *> nodes; // TODO: considerar cambiar a std::list
+    std::vector<const Node *> nodes;
     std::vector<unsigned long> nodes_counter;
     long double quality = 0;
     long truckId;

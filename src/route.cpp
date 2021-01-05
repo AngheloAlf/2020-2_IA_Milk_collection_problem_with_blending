@@ -113,7 +113,6 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
     if(!changed){
         return quality;
     }
-    long milk_produced = 0;
     long double distance_penalty = 0;
 
     const auto &current_milk_type = milk_list.at(this->milkType - 'A');
@@ -128,19 +127,16 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
 
     const Node *prev_node = initial_node;
     for(const auto &node_ptr: nodes){
-        const auto &node = *node_ptr;
-        milk_produced += node.getProduced();
-        distance_penalty += node.cachedDistance(*prev_node);
-
+        distance_penalty += (*node_ptr).cachedDistance(*prev_node);
         prev_node = node_ptr;
     }
     distance_penalty += (*prev_node).cachedDistance(*initial_node);
 
     changed = false;
-    quality = milk_produced * profit_percentage - distance_penalty;
-    assert(!std::isnan(quality));
-    assert(!std::isinf(quality));
-    assert(std::isfinite(quality));
+    quality = milkAmount * profit_percentage - distance_penalty;
+    //assert(!std::isnan(quality));
+    //assert(!std::isinf(quality));
+    //assert(std::isfinite(quality));
     return quality;
 }
 
@@ -156,28 +152,22 @@ long double Route::calculateTransportCosts(const Node *initial_node) const{
 
     distance_penalty += (*prev_node).cachedDistance(*initial_node);
 
-    assert(!std::isnan(distance_penalty));
-    assert(!std::isinf(distance_penalty));
-    assert(std::isfinite(distance_penalty));
+    //assert(!std::isnan(distance_penalty));
+    //assert(!std::isinf(distance_penalty));
+    //assert(std::isfinite(distance_penalty));
 
     return distance_penalty;
 }
 
 long double Route::calculateMilkProfits(const std::vector<MilkType> &milk_list) const{
-    long milk_produced = 0;
-
     const auto &current_milk_type = milk_list.at(this->milkType - 'A');
     assert(current_milk_type.getId() == this->milkType);
 
     long double profit_percentage = current_milk_type.getMilkProfit();
-    for(const auto &node: nodes){
-        milk_produced += (*node).getProduced();
-    }
+    long double result = milkAmount * profit_percentage;
 
-    long double result = milk_produced * profit_percentage;
-
-    assert(!std::isnan(result));
-    assert(!std::isinf(result));
-    assert(std::isfinite(result));
+    //assert(!std::isnan(result));
+    //assert(!std::isinf(result));
+    //assert(std::isfinite(result));
     return result;
 }
