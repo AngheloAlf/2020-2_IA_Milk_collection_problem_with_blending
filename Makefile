@@ -1,13 +1,14 @@
 CC = clang++
 STD = -std=c++17
+DEBUG_SYMBOLS = -g -g3
 WARNINGS = -Wall -Wextra -Wshadow -Wpedantic# -Wpadded -Wsign-conversion
 WARNINGS_EVERYTHING = $(WARNINGS) -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-format-nonliteral -Wno-padded -Wno-old-style-cast
-FLAGS = -pipe $(STD) $(WARNINGS)
+FLAGS = -pipe $(STD) $(DEBUG_SYMBOLS) $(WARNINGS)
 # FLAGS = -pipe $(STD) $(WARNINGS_EVERYTHING)
 EXECUTABLE = MCPwB.elf
 
 FLAGS_RELEASE = -O2 -DNDEBUG -march=native
-FLAGS_DEBUG = -Og -g -g3
+FLAGS_DEBUG = -Og
 
 MODE = DEBUG
 ifeq ($(MODE), DEBUG)
