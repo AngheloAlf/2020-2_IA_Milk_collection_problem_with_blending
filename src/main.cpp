@@ -8,6 +8,46 @@
 #define BASE10 (10)
 #define MICROSECONDS_PER_MILLISECOND (1000.L)
 
+
+void printSolutionAndQuality(const Instance &inst, std::vector<Route> &sol){
+    for(unsigned long i = 0; i < sol.size(); ++i){
+        printf("%li: ", i);
+        const auto &route = sol.at(i);
+        route.print(true);
+    }
+    printf("Value: %Lf\n", inst.evaluateSolution(sol));
+}
+
+void printResults(const Instance &inst, std::vector<Route> &optimal){
+    const auto *initial_node = inst.getInitialNode();
+
+    auto total_benefits = inst.evaluateSolution(optimal);
+    auto transport_costs = inst.calculateTransportCosts(optimal);
+    auto milk_profits = inst.calculateMilkProfits(optimal);
+    printf("%.2Lf %.2Lf %.2Lf\n\n", total_benefits, transport_costs, milk_profits);
+
+    int size_longest_route = 0;
+    for(const auto &route: optimal){
+        int route_size = static_cast<int>(route.getNodes().size());
+        if(route_size > size_longest_route){
+            size_longest_route = route_size;
+        }
+    }
+
+    for(const auto &route: optimal){
+        printf("%02ld-", (*initial_node).getId());
+        for(const auto &node: route.getNodes()){
+            printf("%02ld-", (*node).getId());
+        }
+        int route_size = static_cast<int>(route.getNodes().size());
+        printf("%02ld", (*initial_node).getId());
+        // Se encarga de poner el espacio faltante para que todo se vea cuadradito.
+        printf("%*c", (size_longest_route-route_size)*3+1, ' ');
+        printf("%.2Lf %ld %c\n", route.calculateTransportCosts(initial_node), route.getMilkAmount(), route.getMilkType());
+    }
+}
+
+
 int main(int argc, char **argv){
     if(argc < 3){
         fprintf(stderr, "Faltan argumentos.\n");
@@ -32,39 +72,20 @@ int main(int argc, char **argv){
 
     auto sol = inst.initialSolution();
     if(Utils::debugPrintingEnabled){
-        for(unsigned long i = 0; i < sol.size(); ++i){
-            printf("%li: ", i);
-            const auto &route = sol.at(i);
-            route.print(true);
-        }
-        printf("Value: %Lf\n\n", inst.evaluateSolution(sol));
+        printf("Initial solution:\n");
+        printSolutionAndQuality(inst, sol);
+        printf("\n\n");
     }
 
     auto optimal(inst.hillClimbing(sol, K));
 
     if(Utils::debugPrintingEnabled){
-        for(unsigned long i = 0; i < optimal.size(); ++i){
-            printf("%li: ", i);
-            const auto &route = optimal.at(i);
-            route.print(true);
-        }
-        printf("Value: %Lf\n\n", inst.evaluateSolution(optimal));
+        printf("Final solution:\n");
+        printSolutionAndQuality(inst, optimal);
+        printf("\n\n");
     }
 
-    const auto *initial_node = inst.getInitialNode();
-
-    auto total_benefits = inst.evaluateSolution(optimal);
-    auto transport_costs = inst.calculateTransportCosts(optimal);
-    auto milk_profits = inst.calculateMilkProfits(optimal);
-    printf("%.2Lf %.2Lf %.2Lf\n\n", total_benefits, transport_costs, milk_profits);
-
-    for(const auto &route: optimal){
-        printf("%02ld-", (*initial_node).getId());
-        for(const auto &node: route.getNodes()){
-            printf("%02ld-", (*node).getId());
-        }
-        printf("%02ld %.2Lf %ld %c\n", (*initial_node).getId(), route.calculateTransportCosts(initial_node), route.getMilkAmount(), route.getMilkType());
-    }
+    printResults(inst, optimal);
 
     auto time_program_end = std::chrono::steady_clock::now();
     auto time_program_duration = (time_program_end - time_program_start)/std::chrono::microseconds(1);
