@@ -106,12 +106,6 @@ void Route::reverseFarmsOrder(long left, long right){
 }
 
 
-const MilkType &findMilkType(const std::vector<MilkType> &milk_list, char current_milk_type){
-    auto milk_iter = std::find_if(milk_list.begin(), milk_list.end(), [&current_milk_type](const MilkType &milk){ return current_milk_type == milk.getId(); });
-    assert(milk_iter != milk_list.end());
-    return *milk_iter;
-}
-
 long double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list){
     if(capacityLeft < 0){
         return 0;
@@ -122,7 +116,8 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
     long milk_produced = 0;
     long double distance_penalty = 0;
 
-    auto current_milk_type = findMilkType(milk_list, this->milkType);
+    const auto &current_milk_type = milk_list.at(this->milkType - 'A');
+    assert(current_milk_type.getId() == this->milkType);
 
     long double profit_percentage = current_milk_type.getMilkProfit();
     long quota = current_milk_type.getMilkQuota();
@@ -171,7 +166,9 @@ long double Route::calculateTransportCosts(const Node *initial_node) const{
 long double Route::calculateMilkProfits(const std::vector<MilkType> &milk_list) const{
     long milk_produced = 0;
 
-    auto current_milk_type = findMilkType(milk_list, this->milkType);
+    const auto &current_milk_type = milk_list.at(this->milkType - 'A');
+    assert(current_milk_type.getId() == this->milkType);
+
     long double profit_percentage = current_milk_type.getMilkProfit();
     for(const auto &node: nodes){
         milk_produced += (*node).getProduced();
