@@ -151,6 +151,23 @@ std::vector<Route> Instance::initialSolution() const{
 long double Instance::evaluateSolution(std::vector<Route> &sol) const{
     long double result = 0;
 
+    // Verificar que todas las cuota de la planta procesadora se cumplan.
+    std::vector<long> quotas;
+    quotas.reserve(milkList.size());
+    for(const auto &milk: milkList){
+        quotas.emplace_back(milk.getMilkQuota());
+    }
+    for(const auto &route: sol){
+        char milk_type = route.getMilkType();
+        quotas[milk_type - 'A'] -= route.getMilkAmount();
+    }
+    for(const auto &q: quotas){
+        if(q > 0){
+            // Si alguna cuota no se cumple.
+            return 0;
+        }
+    }
+
     const auto *initial_node = getInitialNode();
     for(Route &route: sol){
         result += route.evaluateRoute(initial_node, milkList);
