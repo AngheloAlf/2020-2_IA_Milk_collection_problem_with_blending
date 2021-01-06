@@ -24,7 +24,7 @@ void printResults(const Instance &inst, std::vector<Route> &optimal){
     auto total_benefits = inst.evaluateSolution(optimal);
     auto transport_costs = inst.calculateTransportCosts(optimal);
     auto milk_profits = inst.calculateMilkProfits(optimal);
-    //if(!inst.isFeasible(optimal)) Utils::fgRed();
+    if(!inst.isFeasible(optimal)) Utils::fgRed();
     printf("%.2Lf", total_benefits);
     Utils::resetColors();
     printf(" %.2Lf %.2Lf\n\n", transport_costs, milk_profits);

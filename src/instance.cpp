@@ -145,6 +145,26 @@ std::vector<Route> Instance::initialSolution() const{
     return routes;
 }
 
+
+bool Instance::isFeasible(const std::vector<Route> &sol) const{
+    static std::vector<long> quotas_aux;
+    quotas_aux.reserve(milkList.getTotal());
+    quotas_aux.clear();
+
+    for(const auto &milk: milkList){
+        quotas_aux.push_back(milk.getMilkQuota());
+    }
+    for(const auto &route: sol){
+        if(!route.isFeasible()){
+            return false;
+        }
+        char milk_type = route.getMilkType();
+        quotas_aux[milk_type - 'A'] -= route.getMilkAmount();
+    }
+    return !std::any_of(quotas_aux.begin(), quotas_aux.end(), [](const auto &q){ return q > 0; });
+}
+
+
 long double Instance::evaluateSolution(std::vector<Route> &sol) const{
     long double result = 0;
 

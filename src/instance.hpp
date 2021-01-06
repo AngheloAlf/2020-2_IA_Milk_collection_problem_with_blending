@@ -31,6 +31,10 @@ public:
 
     [[nodiscard]]
     std::vector<Route> initialSolution() const;
+
+    [[nodiscard]]
+    bool isFeasible(const std::vector<Route> &sol) const;
+
     [[nodiscard]]
     long double evaluateSolution(std::vector<Route> &sol) const;
     [[nodiscard]]
