@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "truck.hpp"
-#include "milk_type.hpp"
+#include "milk_types_list.hpp"
 #include "node.hpp"
 #include "route.hpp"
 
@@ -45,8 +45,7 @@ private:
     unsigned long trucksAmount;
     std::vector<Truck> trucksList;
 
-    unsigned long milkTypesAmount;
-    std::vector<MilkType> milkList;
+    MilkTypesList milkList;
 
     unsigned long nodesAmount;
     std::vector<std::unique_ptr<Node>> nodesList;

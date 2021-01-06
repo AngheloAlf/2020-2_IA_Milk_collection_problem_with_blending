@@ -58,10 +58,7 @@ void Instance::print(bool /*unused*/) const{
     }
     printf("\n");
 
-    for(const auto &milk: milkList){
-        milk.print(true);
-    }
-    printf("\n");
+    milkList.print(true);
 
     for(const auto &node: nodesList){
         (*node).print(true);
@@ -94,7 +91,7 @@ std::vector<Route> Instance::initialSolution() const{
     routes.reserve(trucksAmount);
     char milk_type = 'A';
     for(unsigned long i = 0; i < trucksAmount; ++i){
-        routes.emplace_back(milk_type++, nodesAmount, milkTypesAmount);
+        routes.emplace_back(&milkList, milk_type++, nodesAmount, milkList.getTotal());
     }
     Utils::randomizeVector(routes);
     for(unsigned long i = 0; i < trucksAmount; ++i){
@@ -153,7 +150,7 @@ long double Instance::evaluateSolution(std::vector<Route> &sol) const{
 
     // Verificar que todas las cuota de la planta procesadora se cumplan.
     static std::vector<long> quotas_aux;
-    quotas_aux.reserve(milkList.size());
+    quotas_aux.reserve(milkList.getTotal());
     quotas_aux.clear();
     for(const auto &milk: milkList){
         quotas_aux.push_back(milk.getMilkQuota());
@@ -171,7 +168,7 @@ long double Instance::evaluateSolution(std::vector<Route> &sol) const{
 
     const auto *initial_node = getInitialNode();
     for(Route &route: sol){
-        result += route.evaluateRoute(initial_node, milkList);
+        result += route.evaluateRoute(initial_node);
     }
 
     return result;
@@ -189,7 +186,7 @@ long double Instance::calculateTransportCosts(const std::vector<Route> &sol) con
 long double Instance::calculateMilkProfits(const std::vector<Route> &sol) const{
     long double result = 0;
     for(const Route &route: sol){
-        result += route.calculateMilkProfits(milkList);
+        result += route.calculateMilkProfits();
     }
     return result;
 }
@@ -380,30 +377,29 @@ void Instance::readTrucks(FILE *arch){
 }
 
 void Instance::readMilk(FILE *arch){
-    fscanf(arch, "%lu", &milkTypesAmount);
-    assert(milkTypesAmount != 0);
+    unsigned long milk_types_amount;
+    fscanf(arch, "%lu", &milk_types_amount);
+    assert(milk_types_amount != 0);
 
     std::vector<long> quotas_list;
-    quotas_list.reserve(milkTypesAmount);
-    for(unsigned long i = 0; i < milkTypesAmount; ++i){
+    quotas_list.reserve(milk_types_amount);
+    for(unsigned long i = 0; i < milk_types_amount; ++i){
         long data;
         fscanf(arch, "%ld", &data);
         quotas_list.emplace_back(data);
     }
 
     std::vector<long double> profit_list;
-    profit_list.reserve(milkTypesAmount);
-    for(unsigned long i = 0; i < milkTypesAmount; ++i){
+    profit_list.reserve(milk_types_amount);
+    for(unsigned long i = 0; i < milk_types_amount; ++i){
         long double data;
         fscanf(arch, "%Lf", &data);
         profit_list.emplace_back(data);
     }
 
-    char milk_type = 'A';
-    milkList.reserve(milkTypesAmount);
-    for(unsigned long i = 0; i < milkTypesAmount; ++i){
-        milkList.emplace_back(milk_type, quotas_list.at(i), profit_list.at(i));
-        ++milk_type;
+    milkList.setTotal(milk_types_amount);
+    for(unsigned long i = 0; i < milk_types_amount; ++i){
+        milkList.add(static_cast<char>(i), quotas_list.at(i), profit_list.at(i));
     }
 }
 
@@ -417,6 +413,6 @@ void Instance::readNodes(FILE *arch){
         char typeProduced;
         fscanf(arch, "%ld %ld %ld %c %ld", &id, &x, &y, &typeProduced, &amountProduced);
         nodesList.push_back(std::make_unique<Node>(id, x, y, typeProduced, amountProduced));
+        if(typeProduced >= 'A') milkList.at(typeProduced).addProducedMilk(amountProduced);
     }
 }
-

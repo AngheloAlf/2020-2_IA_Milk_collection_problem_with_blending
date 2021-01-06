@@ -18,18 +18,21 @@ else
 endif
 
 
-all: obj/main.o obj/instance.o obj/milk_type.o obj/node.o obj/truck.o obj/route.o obj/utils.o
+all: obj/main.o obj/instance.o obj/milk_type.o obj/milk_types_list.o obj/node.o obj/truck.o obj/route.o obj/utils.o
 	$(CC) $(FLAGS) $(FLAGS_OTHER) obj/*.o -o $(EXECUTABLE)
 
 
-obj/main.o: src/main.cpp src/instance.hpp src/milk_type.hpp src/node.hpp src/truck.hpp src/route.hpp src/utils.hpp
+obj/main.o: src/main.cpp src/*.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/main.cpp -c -o obj/main.o
 
-obj/instance.o: src/instance.cpp src/instance.hpp src/milk_type.hpp src/node.hpp src/truck.hpp src/route.hpp src/utils.hpp
+obj/instance.o: src/instance.cpp src/instance.hpp src/*.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/instance.cpp -c -o obj/instance.o
 
 obj/milk_type.o: src/milk_type.cpp src/milk_type.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/milk_type.cpp -c -o obj/milk_type.o
+
+obj/milk_types_list.o: src/milk_types_list.cpp src/milk_types_list.hpp src/milk_type.hpp
+	$(CC) $(FLAGS) $(FLAGS_OTHER) src/milk_types_list.cpp -c -o obj/milk_types_list.o
 
 obj/node.o: src/node.cpp src/node.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/node.cpp -c -o obj/node.o

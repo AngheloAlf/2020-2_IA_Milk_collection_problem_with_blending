@@ -17,13 +17,16 @@ public:
     long getMilkQuota() const;
     [[nodiscard]]
     long double getMilkProfit() const;
+    [[nodiscard]]
+    long getTotalProduced() const;
+
+    void addProducedMilk(long amount);
 
 private:
     long double profit; // La ganancia asociada a este tipo de leche.
     long quota; // Cantidad mínima pedida de este tipo de leche.
+    long totalProduced = 0;
     char typeId; // Tipo de leche. 'A', 'B', 'C', etc.
 };
-
-
 
 #endif

@@ -5,8 +5,8 @@
 #include <cstdio>
 #include <cmath>
 
-Route::Route(char milk_type, unsigned long nodes_amount, unsigned long milk_types_amount)
-: truckId(0), capacityLeft(0), milkAmount(0), milkType(milk_type){
+Route::Route(const MilkTypesList *milk_list, char milk_type, unsigned long nodes_amount, unsigned long milk_types_amount)
+: milkList(milk_list), truckId(0), capacityLeft(0), milkAmount(0), milkType(milk_type){
     nodes.reserve(nodes_amount);
     nodes_counter.assign(milk_types_amount, 0);
 }
@@ -106,7 +106,7 @@ void Route::reverseFarmsOrder(long left, long right){
 }
 
 
-long double Route::evaluateRoute(const Node *initial_node, const std::vector<MilkType> &milk_list){
+long double Route::evaluateRoute(const Node *initial_node){
     // Restricción: No se debe superar la capacidad máxima de los camiones.
     if(capacityLeft < 0){
         return 0;
@@ -117,7 +117,7 @@ long double Route::evaluateRoute(const Node *initial_node, const std::vector<Mil
     }
     long double distance_penalty = 0;
 
-    const auto &current_milk_type = milk_list.at(this->milkType - 'A');
+    const auto &current_milk_type = (*milkList).at(this->milkType);
     assert(current_milk_type.getId() == this->milkType);
 
     long double profit_percentage = current_milk_type.getMilkProfit();
@@ -162,8 +162,8 @@ long double Route::calculateTransportCosts(const Node *initial_node) const{
     return distance_penalty;
 }
 
-long double Route::calculateMilkProfits(const std::vector<MilkType> &milk_list) const{
-    const auto &current_milk_type = milk_list.at(this->milkType - 'A');
+long double Route::calculateMilkProfits() const{
+    const auto &current_milk_type = (*milkList).at(this->milkType);
     assert(current_milk_type.getId() == this->milkType);
 
     long double profit_percentage = current_milk_type.getMilkProfit();
