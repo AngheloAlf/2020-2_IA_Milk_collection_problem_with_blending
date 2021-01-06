@@ -41,7 +41,7 @@ obj/route.o: src/route.cpp src/route.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/route.cpp -c -o obj/route.o
 
 obj/utils.o: src/utils.cpp src/utils.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/utils.cpp -c -o obj/utils.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -Wno-pedantic src/utils.cpp -c -o obj/utils.o
 
 
 clean:

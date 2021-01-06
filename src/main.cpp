@@ -24,7 +24,10 @@ void printResults(const Instance &inst, std::vector<Route> &optimal){
     auto total_benefits = inst.evaluateSolution(optimal);
     auto transport_costs = inst.calculateTransportCosts(optimal);
     auto milk_profits = inst.calculateMilkProfits(optimal);
-    printf("%.2Lf %.2Lf %.2Lf\n\n", total_benefits, transport_costs, milk_profits);
+    //if(!inst.isFeasible(optimal)) Utils::fgRed();
+    printf("%.2Lf", total_benefits);
+    Utils::resetColors();
+    printf(" %.2Lf %.2Lf\n\n", transport_costs, milk_profits);
 
     int size_longest_route = 0;
     for(const auto &route: optimal){
@@ -37,13 +40,25 @@ void printResults(const Instance &inst, std::vector<Route> &optimal){
     for(const auto &route: optimal){
         printf("%02ld-", (*initial_node).getId());
         for(const auto &node: route.getNodes()){
-            printf("%02ld-", (*node).getId());
+            Utils::fgColor(2+((*node).getQuality()-'A'));
+            printf("%02ld", (*node).getId());
+            Utils::resetColors();
+            printf("-");
         }
         int route_size = static_cast<int>(route.getNodes().size());
         printf("%02ld", (*initial_node).getId());
         // Se encarga de poner el espacio faltante para que todo se vea cuadradito.
         printf("%*c", (size_longest_route-route_size)*3+1, ' ');
-        printf("%.2Lf %ld %c\n", route.calculateTransportCosts(initial_node), route.getMilkAmount(), route.getMilkType());
+
+        printf("%7.2Lf ", route.calculateTransportCosts(initial_node));
+        //if(!route.doesFulfilQuota(inst.getMilkList())) Utils::fgRed();
+        printf("%5ld", route.getMilkAmount());
+        Utils::resetColors();
+        printf(" ");
+        //if(!route.isFeasible(inst.getMilkList())) Utils::fgRed();
+        printf("%c", route.getMilkType());
+        Utils::resetColors();
+        printf("\n");
     }
 }
 

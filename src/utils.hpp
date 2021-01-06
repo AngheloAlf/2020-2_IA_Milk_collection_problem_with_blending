@@ -43,6 +43,11 @@ namespace Utils{
 
     extern bool debugPrintingEnabled;
     void debugPrint(const char *format, ...);
+
+    void resetColors();
+    void fgColor(int color);
+    void bgColor(int color);
+    void fgRed();
 }
 
 #endif

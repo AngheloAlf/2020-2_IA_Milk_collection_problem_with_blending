@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/MCPwB.elf",
-            "args": ["instances/a36.txt", "50", "true"],
+            "args": ["instances/c75.txt", "1000", "true"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

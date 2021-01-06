@@ -44,3 +44,20 @@ void Utils::debugPrint(const char *format, ...){
     vfprintf(stderr, format, argptr);
     va_end(argptr);
 }
+
+void Utils::resetColors(){
+    printf("\e[0m");
+}
+void Utils::fgColor(int color){
+    assert(color >= 0);
+    if(color > 7) fprintf(stderr, "fgColor(%d) color > 7\n", color);
+    printf("\e[%dm", 30 + color);
+}
+void Utils::bgColor(int color){
+    assert(color >= 0);
+    if(color > 7) fprintf(stderr, "bgColor(%d) color > 7\n", color);
+    printf("\e[%dm", 40 + color);
+}
+void Utils::fgRed(){
+    printf("\e[31m");
+}
