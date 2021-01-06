@@ -33,6 +33,12 @@ public:
     std::vector<Route> initialSolution() const;
 
     [[nodiscard]]
+    std::vector<long> getQuotasDiff(const std::vector<Route> &sol) const;
+    [[nodiscard]]
+    bool didQuotasDiffImproved(const std::vector<long> &quotas_diff, const std::vector<Route> &sol) const;
+    [[nodiscard]]
+    bool didCapacitiesLeftImproved(const std::vector<Route> &original_solution, long src_route_index, const Route &src_route, const Route &dst_route) const;
+    [[nodiscard]]
     bool isFeasible(const std::vector<Route> &sol) const;
 
     [[nodiscard]]
@@ -62,7 +68,7 @@ private:
     // Movimiento 2-opt de la ruta consigo misma.
     bool intraLocalSearch(std::vector<Route> &solution) const;
 
-    bool tryMoveNodeBetweenRoutes(std::vector<Route> &alternative, long double old_quality, Route &src_route, Route &dst_route) const;
+    bool tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solution, std::vector<Route> &alternative, long double old_quality, long src_route_index, Route &src_route, Route &dst_route) const;
     bool try2OptInRoute(std::vector<Route> &alternative, long double old_quality, Route &route) const;
 
     // Funciones de inicialización.

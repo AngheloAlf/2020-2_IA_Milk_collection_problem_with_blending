@@ -123,10 +123,8 @@ bool Route::removeFarm(long position){
     nodes.erase(iter);
     changed = true;
 
-    if(milkAmount - (**iter).getProduced() < (*milkList).at(milkType).getMilkQuota()){
-        return false;
-    }
-    return true;
+    // Restricción: El total de la leche debe superar la cuota mínima de la planta procesadora.
+    return (milkAmount - (**iter).getProduced() >= (*milkList).at(milkType).getMilkQuota());
 }
 void Route::reverseFarmsOrder(long left, long right){
     std::reverse(nodes.begin() + left, nodes.begin() + right);
@@ -161,11 +159,11 @@ long double Route::evaluateRoute(const Node *initial_node){
     const auto &current_milk_type = getMilkTypeInfo();
 
     long double profit_percentage = current_milk_type.getMilkProfit();
-    long quota = current_milk_type.getMilkQuota();
+    /*long quota = current_milk_type.getMilkQuota();
     // Restricción: Se debe superar la cuota mínima de la planta.
     if(milkAmount < quota){
         return 0;
-    }
+    }*/
 
     // Restricción: Un camión sale de la planta procesadora y vuelve a ella al final del día.
     const Node *prev_node = initial_node;
@@ -180,6 +178,10 @@ long double Route::evaluateRoute(const Node *initial_node){
     //assert(!std::isnan(quality));
     //assert(!std::isinf(quality));
     //assert(std::isfinite(quality));
+    if(!isFeasible()){
+        // Penalizar la calidad de la ruta si es infactible.
+        quality *= 0.3;
+    }
     return quality;
 }
 

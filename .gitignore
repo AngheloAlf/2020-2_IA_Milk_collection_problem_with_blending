@@ -36,3 +36,4 @@
 *.elf
 *.tmp
 perf.data*
+.condarc
