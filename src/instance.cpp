@@ -93,9 +93,23 @@ std::vector<Route> Instance::initialSolution() const{
     for(unsigned long i = 0; i < trucksAmount; ++i){
         routes.emplace_back(&milkList, milk_type++, nodesAmount, milkList.getTotal());
     }
-    Utils::randomizeVector(routes);
-    for(unsigned long i = 0; i < trucksAmount; ++i){
-        routes.at(i).setTruck(trucksList.at(i));
+
+    bool valid = false;
+    while(!valid){
+        valid = true;
+        Utils::randomizeVector(routes);
+
+        for(unsigned long i = 0; valid && i < trucksAmount; ++i){
+            const auto &truck = trucksList.at(i);
+            auto &route = routes.at(i);
+            const auto milk_info = route.getMilkTypeInfo();
+            if(truck.getCapacity() < milk_info.getMilkQuota()){
+                valid = false;
+                break;
+            }
+
+            route.setTruck(truck);
+        }
     }
 
     std::vector<Node *> farms_list;
