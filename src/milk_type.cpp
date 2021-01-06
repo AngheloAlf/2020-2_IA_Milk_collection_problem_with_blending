@@ -8,7 +8,7 @@ MilkType::MilkType(char type_id, long milk_quota, long double milk_profit)
 }
 
 void MilkType::print(bool newline) const{
-    printf("<MilkType. typeId: %c, quota: %ld, profit: %Lf>%s", typeId, quota, profit, newline?"\n":"");
+    printf("<MilkType. typeId: %c, quota: %ld, profit: %.3Lf, totalProduced: %ld>%s", typeId, quota, profit, totalProduced, newline?"\n":"");
 }
 
 char MilkType::getId() const{

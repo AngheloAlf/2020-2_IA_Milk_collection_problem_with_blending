@@ -51,11 +51,11 @@ void printResults(const Instance &inst, std::vector<Route> &optimal){
         printf("%*c", (size_longest_route-route_size)*3+1, ' ');
 
         printf("%7.2Lf ", route.calculateTransportCosts(initial_node));
-        //if(!route.doesFulfilQuota(inst.getMilkList())) Utils::fgRed();
+        if(!route.doesFulfilQuota()) Utils::fgRed();
         printf("%5ld", route.getMilkAmount());
         Utils::resetColors();
         printf(" ");
-        //if(!route.isFeasible(inst.getMilkList())) Utils::fgRed();
+        if(!route.isFeasible()) Utils::fgRed();
         printf("%c", route.getMilkType());
         Utils::resetColors();
         printf("\n");

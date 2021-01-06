@@ -24,12 +24,30 @@ public:
     long getCapacityLeft() const;
     [[nodiscard]]
     const std::vector<const Node *> &getNodes() const;
+    [[nodiscard]]
+    const MilkType &getMilkTypeInfo() const;
 
     void setTruck(const Truck &truck);
-    void addFarm(const Node *farm);
-    void addFarm(long position, const Node *farm);
-    void removeFarm(long position);
+
+    /// Agrega la granja a la ruta.
+    /// Retorna `false` si al agregar la granja se está violando alguna restricción (capacidad del camión, etc...).
+    /// Retorna `true` en caso contrario.
+    /// En ambos casos la granja es agregada a la ruta.
+    bool addFarm(const Node *farm);
+    /// Agrega la granja a la ruta en la posición especificada.
+    bool addFarm(long position, const Node *farm);
+
+    /// Remueve la granja de la posición especificada de esta ruta.
+    /// Retorna `false` si al remover la granja se está violando alguna restricción (no se cumplen las cuotas, etc...).
+    /// Retorna `true` en caso contrario.
+    bool removeFarm(long position);
+
     void reverseFarmsOrder(long left, long right);
+
+    [[nodiscard]]
+    bool doesFulfilQuota() const;
+    [[nodiscard]]
+    bool isFeasible() const;
 
     [[nodiscard]]
     long double evaluateRoute(const Node *initial_node);
@@ -48,6 +66,9 @@ private:
     long milkAmount;
     char milkType;
     bool changed = true;
+
+    [[nodiscard]]
+    char recalculateMilkType() const;
 };
 
 #endif
