@@ -59,3 +59,12 @@ TIDY_CHECKS_EXCLUDED = ,-modernize-use-trailing-return-type,-clang-analyzer-vali
 
 tidy:
 	clang-tidy -header-filter=.* -checks=$(TIDY_CHECKS_INCLUDED)$(TIDY_CHECKS_EXCLUDED) src/*.cpp -- $(FLAGS) $(FLAGS_OTHER)
+
+
+perf:
+	perf record ./test_instances.sh 1000
+	perf report
+
+perf-graph:
+	perf record --call-graph dwarf ./test_instances.sh 1000
+	perf report --call-graph --stdio -G
