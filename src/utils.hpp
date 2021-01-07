@@ -27,10 +27,9 @@ namespace Utils{
             return vec.end();
         }
         auto start = vec.begin();
-        auto end = vec.end();
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        std::uniform_int_distribution<long> dis(0, std::distance(start, end) - 1);
+        std::uniform_int_distribution<long> dis(0, vec.size()-1);
         std::advance(start, dis(gen));
         return start;
     }

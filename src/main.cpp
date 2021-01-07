@@ -88,7 +88,7 @@ int main(int argc, char **argv){
 
     if(Utils::debugPrintingEnabled){
         printf("Final solution:\n");
-        sol.print(true);
+        optimal.print(true);
         printf("\n");
     }
 

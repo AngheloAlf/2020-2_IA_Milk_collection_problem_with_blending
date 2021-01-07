@@ -206,11 +206,25 @@ Solution Solution::hillClimbing(long K) const{
 
     if(Utils::debugPrintingEnabled) Utils::debugPrint("initial_quality: %Lf\n\n", best_solution.evaluateSolution());
 
-    for(long i = 0; i < K; ++i){
+    std::vector<long> order_of_movements(Utils::range(3));
+
+    long i = 0;
+    for(; i < K; ++i){
         bool is_better_solution = false;
-        is_better_solution |= solution.movement_extraLocalSearch();
-        is_better_solution |= solution.movement_intraLocalSearch();
-        is_better_solution |= solution.movement_removeOneNode();
+        Utils::randomizeVector(order_of_movements);
+        for(auto &movement: order_of_movements){
+            switch (movement){
+            case 0:
+                is_better_solution |= solution.movement_extraLocalSearch();
+                break;
+            case 1:
+                is_better_solution |= solution.movement_intraLocalSearch();
+                break;
+            case 2:
+                is_better_solution |= solution.movement_removeOneNode();
+                break;
+            }
+        }
 
         if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
         if(is_better_solution){
@@ -221,6 +235,17 @@ Solution Solution::hillClimbing(long K) const{
         }
     }
     Utils::debugPrint("\n");
+
+    /*for(; i < K; ++i){
+        bool is_better_solution = solution.movement_removeOneNode();
+        if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
+        if(is_better_solution){
+            best_solution = solution;
+        }
+        else{
+            break;
+        }
+    }*/
 
     return best_solution;
 }

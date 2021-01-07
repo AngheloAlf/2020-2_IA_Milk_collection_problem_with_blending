@@ -109,14 +109,15 @@ bool Route::removeFarm(long position){
     assert((unsigned long)position < nodes.size());
 
     auto iter = nodes.begin() + position;
+    const Node *node = *iter;
 
-    capacityLeft += (**iter).getProduced();
-    milkAmount -= (**iter).getProduced();
+    capacityLeft += (*node).getProduced();
+    milkAmount -= (*node).getProduced();
 
-    nodes_counter[(**iter).getQuality()-'A'] -= 1;
+    nodes_counter[(*node).getQuality()-'A'] -= 1;
 
     // Si la calidad de la leche de esa granja es la peor, es posible que el conjunto mejore al removerla.
-    if((**iter).getQuality() == milkType && nodes_counter[(**iter).getQuality()-'A'] == 0){
+    if((*node).getQuality() == milkType && nodes_counter[(*node).getQuality()-'A'] == 0){
         milkType = recalculateMilkType();
     }
 
@@ -124,7 +125,8 @@ bool Route::removeFarm(long position){
     changed = true;
 
     // Restricción: El total de la leche debe superar la cuota mínima de la planta procesadora.
-    return (milkAmount - (**iter).getProduced() >= (*milkList).at(milkType).getMilkQuota());
+    long quota = (*milkList).at(milkType).getMilkQuota();
+    return (milkAmount >= quota);
 }
 void Route::reverseFarmsOrder(long left, long right){
     std::reverse(nodes.begin() + left, nodes.begin() + right);
