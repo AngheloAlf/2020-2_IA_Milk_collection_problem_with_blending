@@ -64,9 +64,13 @@ private:
 
     // Movimientos para hill climbing.
     // Mover un nodo de una ruta a las demás rutas.
+    [[nodiscard]]
     bool extraLocalSearch(std::vector<Route> &solution) const;
     // Movimiento 2-opt de la ruta consigo misma.
+    [[nodiscard]]
     bool intraLocalSearch(std::vector<Route> &solution) const;
+    [[nodiscard]]
+    bool removeOneNode(std::vector<Route> &solution) const;
 
     bool tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solution, std::vector<Route> &alternative, long double old_quality, long src_route_index, Route &src_route, Route &dst_route) const;
     bool try2OptInRoute(std::vector<Route> &alternative, long double old_quality, Route &route) const;

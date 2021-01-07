@@ -282,8 +282,9 @@ std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solu
         bool is_better_solution = false;
         is_better_solution |= extraLocalSearch(solution);
         is_better_solution |= intraLocalSearch(solution);
+        is_better_solution |= removeOneNode(solution);
 
-        Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, evaluateSolution(solution));
+        if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, evaluateSolution(solution));
         if(is_better_solution){
             best_solution = solution;
         }
@@ -352,6 +353,42 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
         if(did_quality_improved){
             solution = alternative;
             return true;
+        }
+    }
+
+    // Ya se probaron todas las vecindades posibles y ninguna dio una solución de mejor calidad.
+    return false;
+}
+
+bool Instance::removeOneNode(std::vector<Route> &solution) const{
+    long double old_quality = evaluateSolution(solution);
+    std::vector<Route> alternative(solution);
+
+    // Randomizar el orden en que se seleccionarán las rutas (route);
+    // sin tener que randomizar el vector original.
+    std::vector<long> order_of_selected_routes(Utils::range(alternative.size()));
+    Utils::randomizeVector(order_of_selected_routes);
+
+    for(const long &route_index: order_of_selected_routes){
+        Route &route = alternative.at(route_index);
+
+        const std::vector<const Node *> &nodes_list = route.getNodes();
+
+        // Randomizar el orden en que se borrarán los nodos sin tener que randomizar el vector original.
+        std::vector<long> order_of_selected_nodes(Utils::range(nodes_list.size()));
+        Utils::randomizeVector(order_of_selected_nodes);
+
+        for(const long &pos: order_of_selected_nodes){
+            const Node *node = nodes_list.at(pos);
+            bool removed_without_problems = route.removeFarm(pos);
+            if(removed_without_problems){
+                long double new_quality = evaluateSolution(alternative);
+                if(new_quality > old_quality){
+                    Utils::debugPrint("remove: improve quality\n");
+                    return true;
+                }
+            }
+            route.addFarm(pos, node);
         }
     }
 
