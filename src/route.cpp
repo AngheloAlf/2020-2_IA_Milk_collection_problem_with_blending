@@ -74,7 +74,7 @@ bool Route::addFarm(const Node *farm){
     }
 
     // Restricción: No se debe superar la capacidad máxima de los camiones.
-    return capacityLeft - (*farm).getProduced() > 0;
+    return capacityLeft - (*farm).getProduced() >= 0;
 }
 bool Route::addFarm(long position, const Node *farm){
     assert(position >= 0);
@@ -101,7 +101,7 @@ bool Route::addFarm(long position, const Node *farm){
     }
 
     // Restricción: No se debe superar la capacidad máxima de los camiones.
-    return capacityLeft - (*farm).getProduced() > 0;
+    return capacityLeft - (*farm).getProduced() >= 0;
 }
 
 bool Route::removeFarm(long position){

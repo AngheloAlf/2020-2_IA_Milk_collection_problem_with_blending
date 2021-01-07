@@ -9,35 +9,26 @@
 #define MICROSECONDS_PER_MILLISECOND (1000.L)
 
 
-void printSolutionAndQuality(const Instance &inst, std::vector<Route> &sol){
-    for(unsigned long i = 0; i < sol.size(); ++i){
-        printf("%li: ", i);
-        const auto &route = sol.at(i);
-        route.print(true);
-    }
-    printf("Value: %Lf\n", inst.evaluateSolution(sol));
-}
-
-void printResults(const Instance &inst, std::vector<Route> &optimal){
+void printResults(const Instance &inst, Solution &optimal){
     const auto *initial_node = inst.getInitialNode();
 
-    auto total_benefits = inst.evaluateSolution(optimal);
-    auto transport_costs = inst.calculateTransportCosts(optimal);
-    auto milk_profits = inst.calculateMilkProfits(optimal);
-    if(!inst.isFeasible(optimal)) Utils::fgRed();
+    auto total_benefits = optimal.evaluateSolution();
+    auto transport_costs = optimal.calculateTransportCosts();
+    auto milk_profits = optimal.calculateMilkProfits();
+    if(!optimal.isFeasible()) Utils::fgRed();
     printf("%.2Lf", total_benefits);
     Utils::resetColors();
     printf(" %.2Lf %.2Lf\n\n", transport_costs, milk_profits);
 
     int size_longest_route = 0;
-    for(const auto &route: optimal){
+    for(const auto &route: optimal.getRoutes()){
         int route_size = static_cast<int>(route.getNodes().size());
         if(route_size > size_longest_route){
             size_longest_route = route_size;
         }
     }
 
-    for(const auto &route: optimal){
+    for(const auto &route: optimal.getRoutes()){
         printf("%02ld-", (*initial_node).getId());
         for(const auto &node: route.getNodes()){
             Utils::fgColor(2+((*node).getQuality()-'A'));
@@ -88,16 +79,16 @@ int main(int argc, char **argv){
     auto sol = inst.initialSolution();
     if(Utils::debugPrintingEnabled){
         printf("Initial solution:\n");
-        printSolutionAndQuality(inst, sol);
-        printf("\n\n");
+        sol.print(true);
+        printf("\n");
     }
 
     auto optimal(inst.hillClimbing(sol, K));
 
     if(Utils::debugPrintingEnabled){
         printf("Final solution:\n");
-        printSolutionAndQuality(inst, optimal);
-        printf("\n\n");
+        sol.print(true);
+        printf("\n");
     }
 
     printResults(inst, optimal);

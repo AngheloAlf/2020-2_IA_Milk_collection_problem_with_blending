@@ -10,6 +10,7 @@
 #include "milk_types_list.hpp"
 #include "node.hpp"
 #include "route.hpp"
+#include "solution.hpp"
 
 /**
  *  Clase que modela la instancia que proviene de un archivo de texto.
@@ -27,29 +28,20 @@ public:
     void print(bool newline=false) const;
 
     [[nodiscard]]
-    const Node *getInitialNode() const;
+    Node *getInitialNode() const;
 
     [[nodiscard]]
-    std::vector<Route> initialSolution() const;
+    Solution initialSolution();
 
     [[nodiscard]]
     std::vector<long> getQuotasDiff(const std::vector<Route> &sol) const;
     [[nodiscard]]
-    bool didQuotasDiffImproved(const std::vector<long> &quotas_diff, const std::vector<Route> &sol) const;
+    bool didQuotasDiffImproved(const std::vector<long> &quotas_diff, const Solution &sol) const;
     [[nodiscard]]
-    bool didCapacitiesLeftImproved(const std::vector<Route> &original_solution, long src_route_index, const Route &src_route, const Route &dst_route) const;
-    [[nodiscard]]
-    bool isFeasible(const std::vector<Route> &sol) const;
+    bool didCapacitiesLeftImproved(const Solution &original_solution, long src_route_index, const Route &src_route, const Route &dst_route) const;
 
     [[nodiscard]]
-    long double evaluateSolution(std::vector<Route> &sol) const;
-    [[nodiscard]]
-    long double calculateTransportCosts(const std::vector<Route> &sol) const;
-    [[nodiscard]]
-    long double calculateMilkProfits(const std::vector<Route> &sol) const;
-
-    [[nodiscard]]
-    std::vector<Route> hillClimbing(const std::vector<Route> &initial_solution, long K) const;
+    Solution hillClimbing(const Solution &initial_solution, long K) const;
 
 private:
     unsigned long trucksAmount;
@@ -65,15 +57,15 @@ private:
     // Movimientos para hill climbing.
     // Mover un nodo de una ruta a las demás rutas.
     [[nodiscard]]
-    bool extraLocalSearch(std::vector<Route> &solution) const;
+    bool movement_extraLocalSearch(Solution &solution) const;
     // Movimiento 2-opt de la ruta consigo misma.
     [[nodiscard]]
-    bool intraLocalSearch(std::vector<Route> &solution) const;
+    bool movement_intraLocalSearch(Solution &solution) const;
     [[nodiscard]]
-    bool removeOneNode(std::vector<Route> &solution) const;
+    bool movement_removeOneNode(Solution &solution) const;
 
-    bool tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solution, std::vector<Route> &alternative, long double old_quality, long src_route_index, Route &src_route, Route &dst_route) const;
-    bool try2OptInRoute(std::vector<Route> &alternative, long double old_quality, Route &route) const;
+    bool tryMoveNodeBetweenRoutes(const Solution &original_solution, Solution &alternative, long double old_quality, long src_route_index, long dst_route_index) const;
+    bool try2OptInRoute(Solution &alternative, long double old_quality, long route_index) const;
 
     // Funciones de inicialización.
     void readTrucks(FILE *arch);

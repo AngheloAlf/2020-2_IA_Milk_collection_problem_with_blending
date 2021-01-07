@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <cmath>
+
 #include "utils.hpp"
 
 
@@ -81,82 +82,13 @@ void Instance::print(bool /*unused*/) const{
 }
 
 
-const Node *Instance::getInitialNode() const{
+Node *Instance::getInitialNode() const{
     return nodesList.at(0).get();
 }
 
 
-std::vector<Route> Instance::initialSolution() const{
-    std::vector<Route> routes;
-    routes.reserve(trucksAmount);
-    char milk_type = 'A';
-    for(unsigned long i = 0; i < trucksAmount; ++i){
-        routes.emplace_back(&milkList, milk_type++, nodesAmount, milkList.getTotal());
-    }
-
-    bool valid = false;
-    while(!valid){
-        valid = true;
-        Utils::randomizeVector(routes);
-
-        for(unsigned long i = 0; valid && i < trucksAmount; ++i){
-            const auto &truck = trucksList.at(i);
-            auto &route = routes.at(i);
-            const auto milk_info = route.getMilkTypeInfo();
-            if(truck.getCapacity() < milk_info.getMilkQuota()){
-                valid = false;
-                break;
-            }
-
-            route.setTruck(truck);
-        }
-    }
-
-    std::vector<Node *> farms_list;
-    farms_list.reserve(nodesList.size());
-    for(auto iter = nodesList.begin()+1; iter < nodesList.end(); ++iter){
-        farms_list.push_back((*iter).get());
-    }
-    Utils::randomizeVector(farms_list);
-
-    long TOL = 0;
-    const long tol_change = 10;
-    long truck_counter = 0;
-
-    /*print(true);
-
-    for(auto &asdf: farms_list){
-        asdf.print(true);
-    }*/
-
-    while(!farms_list.empty()){
-        auto selected_farm_iter = Utils::selectRandomly(farms_list);
-        assert(selected_farm_iter != farms_list.end());
-        Node *selected_farm = *selected_farm_iter;
-
-        for(unsigned long i = 0; i < trucksList.size(); ++i){
-            Route &route = routes.at(i);
-            if(route.getCapacityLeft() - (*selected_farm).getProduced() >= TOL && route.getMilkType() == (*selected_farm).getQuality()){
-                route.addFarm(selected_farm);
-                farms_list.erase(selected_farm_iter);
-                ++truck_counter;
-
-                if(farms_list.empty()) break;
-
-                selected_farm_iter = Utils::selectRandomly(farms_list);
-                assert(selected_farm_iter != farms_list.end());
-                selected_farm = *selected_farm_iter;
-            }
-        }
-
-        if(truck_counter == 0){
-            TOL -= tol_change;
-            continue;
-        }
-        truck_counter = 0;
-    }
-
-    return routes;
+Solution Instance::initialSolution(){
+    return Solution::initialSolution(nodesList, &milkList, trucksList, getInitialNode());
 }
 
 
@@ -175,8 +107,8 @@ std::vector<long> Instance::getQuotasDiff(const std::vector<Route> &sol) const{
     return quotas_diff;
 }
 
-bool Instance::didQuotasDiffImproved(const std::vector<long> &quotas_diff, const std::vector<Route> &sol) const{
-    for(const auto &route: sol){
+bool Instance::didQuotasDiffImproved(const std::vector<long> &quotas_diff, const Solution &sol) const{
+    for(const auto &route: sol.getRoutes()){
         char milk_type = route.getMilkType();
         long i = milk_type - 'A';
         if(quotas_diff[i] <= 0){
@@ -192,12 +124,12 @@ bool Instance::didQuotasDiffImproved(const std::vector<long> &quotas_diff, const
     return false;
 }
 
-bool Instance::didCapacitiesLeftImproved(const std::vector<Route> &original_solution, long src_route_index, const Route &src_route, const Route &dst_route) const{
+bool Instance::didCapacitiesLeftImproved(const Solution &original_solution, long src_route_index, const Route &src_route, const Route &dst_route) const{
     if(dst_route.getCapacityLeft() < 0){
         return false;
     }
-    if(original_solution.at(src_route_index).getCapacityLeft() < 0){
-        if(src_route.getCapacityLeft() > original_solution.at(src_route_index).getCapacityLeft()){
+    if(original_solution.getRoutes().at(src_route_index).getCapacityLeft() < 0){
+        if(src_route.getCapacityLeft() > original_solution.getRoutes().at(src_route_index).getCapacityLeft()){
             return true;
         }
     }
@@ -205,86 +137,20 @@ bool Instance::didCapacitiesLeftImproved(const std::vector<Route> &original_solu
     return false;
 }
 
-bool Instance::isFeasible(const std::vector<Route> &sol) const{
-    static std::vector<long> quotas_aux;
-    quotas_aux.reserve(milkList.getTotal());
-    quotas_aux.clear();
 
-    for(const auto &milk: milkList){
-        quotas_aux.push_back(milk.getMilkQuota());
-    }
-    for(const auto &route: sol){
-        if(!route.isFeasible()){
-            return false;
-        }
-        char milk_type = route.getMilkType();
-        quotas_aux[milk_type - 'A'] -= route.getMilkAmount();
-    }
-    return !std::any_of(quotas_aux.begin(), quotas_aux.end(), [](const auto &q){ return q > 0; });
-}
+Solution Instance::hillClimbing(const Solution &initial_solution, long K) const{
+    Solution best_solution(initial_solution);
+    Solution solution(initial_solution);
 
-
-long double Instance::evaluateSolution(std::vector<Route> &sol) const{
-    long double result = 0;
-
-    /*// Verificar que todas las cuota de la planta procesadora se cumplan.
-    static std::vector<long> quotas_aux;
-    quotas_aux.reserve(milkList.getTotal());
-    quotas_aux.clear();
-    for(const auto &milk: milkList){
-        quotas_aux.push_back(milk.getMilkQuota());
-    }
-    for(const auto &route: sol){
-        char milk_type = route.getMilkType();
-        quotas_aux[milk_type - 'A'] -= route.getMilkAmount();
-    }
-    for(const auto &q: quotas_aux){
-        if(q > 0){
-            // Restricción: El total de la leche de cada tipo (haya sido mezclada o no) debe superar la cuota mínima de la planta procesadora.
-            return 0;
-        }
-    }*/
-
-    const auto *initial_node = getInitialNode();
-    for(Route &route: sol){
-        result += route.evaluateRoute(initial_node);
-    }
-
-    return result;
-}
-long double Instance::calculateTransportCosts(const std::vector<Route> &sol) const{
-    long double result = 0;
-
-    const auto *initial_node = getInitialNode();
-    for(const Route &route: sol){
-        result += route.calculateTransportCosts(initial_node);
-    }
-
-    return result;
-}
-long double Instance::calculateMilkProfits(const std::vector<Route> &sol) const{
-    long double result = 0;
-    for(const Route &route: sol){
-        result += route.calculateMilkProfits();
-    }
-    return result;
-}
-
-
-std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solution, long K) const{
-    std::vector<Route> best_solution(initial_solution);
-    std::vector<Route> solution(initial_solution);
-    long double best_quality = evaluateSolution(best_solution);
-
-    Utils::debugPrint("initial_quality: %Lf\n\n", best_quality);
+    if(Utils::debugPrintingEnabled) Utils::debugPrint("initial_quality: %Lf\n\n", best_solution.evaluateSolution());
 
     for(long i = 0; i < K; ++i){
         bool is_better_solution = false;
-        is_better_solution |= extraLocalSearch(solution);
-        is_better_solution |= intraLocalSearch(solution);
-        is_better_solution |= removeOneNode(solution);
+        is_better_solution |= movement_extraLocalSearch(solution);
+        is_better_solution |= movement_intraLocalSearch(solution);
+        is_better_solution |= movement_removeOneNode(solution);
 
-        if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, evaluateSolution(solution));
+        if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
         if(is_better_solution){
             best_solution = solution;
         }
@@ -299,21 +165,23 @@ std::vector<Route> Instance::hillClimbing(const std::vector<Route> &initial_solu
 
 
 // Mover un nodo de una ruta a las demás rutas.
-bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
-    long double old_quality = evaluateSolution(solution);
-    std::vector<Route> alternative(solution);
+bool Instance::movement_extraLocalSearch(Solution &solution) const{
+    long double old_quality = solution.evaluateSolution();
+    Solution alternative(solution);
+
+    const std::vector<Route> &routes_list = alternative.getRoutes();
 
     // Randomizar el orden en que se seleccionarán las rutas de origen (src_route),
     // sin tener que randomizar el vector original.
-    std::vector<long> order_of_selected_routes_src(Utils::range(alternative.size()));
+    std::vector<long> order_of_selected_routes_src(Utils::range(routes_list.size()));
     Utils::randomizeVector(order_of_selected_routes_src);
 
     for(const long &src_route_index: order_of_selected_routes_src){
-        Route &src_route = alternative.at(src_route_index);
+        //Route &src_route = alternative.at(src_route_index);
 
         // Randomizar el orden en que se seleccionarán las rutas de destino (dst_route),
         // sin tener que randomizar el vector original.
-        std::vector<long> order_of_selected_routes_dst(Utils::range(alternative.size()));
+        std::vector<long> order_of_selected_routes_dst(Utils::range(routes_list.size()));
         Utils::randomizeVector(order_of_selected_routes_dst);
 
         for(const long &dst_route_index: order_of_selected_routes_dst){
@@ -322,9 +190,9 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
                 continue;
             }
 
-            Route &dst_route = alternative.at(dst_route_index);
+            //Route &dst_route = alternative.at(dst_route_index);
 
-            bool did_quality_improved = tryMoveNodeBetweenRoutes(solution, alternative, old_quality, src_route_index, src_route, dst_route);
+            bool did_quality_improved = tryMoveNodeBetweenRoutes(solution, alternative, old_quality, src_route_index, dst_route_index);
             if(did_quality_improved){
                 solution = alternative;
                 return true;
@@ -337,19 +205,21 @@ bool Instance::extraLocalSearch(std::vector<Route> &solution) const{
 }
 
 // Movimiento 2-opt de la ruta consigo misma.
-bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
-    long double old_quality = evaluateSolution(solution);
-    std::vector<Route> alternative(solution);
+bool Instance::movement_intraLocalSearch(Solution &solution) const{
+    long double old_quality = solution.evaluateSolution();
+    Solution alternative(solution);
+
+    const std::vector<Route> &routes_list = alternative.getRoutes();
 
     // Randomizar el orden en que se seleccionarán las rutas (route);
     // sin tener que randomizar el vector original.
-    std::vector<long> order_of_selected_routes(Utils::range(alternative.size()));
+    std::vector<long> order_of_selected_routes(Utils::range(routes_list.size()));
     Utils::randomizeVector(order_of_selected_routes);
 
     for(const long &route_index: order_of_selected_routes){
-        Route &route = alternative.at(route_index);
+        //Route &route = alternative.at(route_index);
 
-        bool did_quality_improved = try2OptInRoute(alternative, old_quality, route);
+        bool did_quality_improved = try2OptInRoute(alternative, old_quality, route_index);
         if(did_quality_improved){
             solution = alternative;
             return true;
@@ -360,19 +230,21 @@ bool Instance::intraLocalSearch(std::vector<Route> &solution) const{
     return false;
 }
 
-bool Instance::removeOneNode(std::vector<Route> &solution) const{
-    long double old_quality = evaluateSolution(solution);
-    std::vector<Route> alternative(solution);
+bool Instance::movement_removeOneNode(Solution &solution) const{
+    long double old_quality = solution.evaluateSolution();
+    Solution alternative(solution);
+
+    const std::vector<Route> &routes_list = alternative.getRoutes();
 
     // Randomizar el orden en que se seleccionarán las rutas (route);
     // sin tener que randomizar el vector original.
-    std::vector<long> order_of_selected_routes(Utils::range(alternative.size()));
+    std::vector<long> order_of_selected_routes(Utils::range(routes_list.size()));
     Utils::randomizeVector(order_of_selected_routes);
 
     for(const long &route_index: order_of_selected_routes){
-        Route &route = alternative.at(route_index);
+        //Route &route = routes_list.at(route_index);
 
-        const std::vector<const Node *> &nodes_list = route.getNodes();
+        const std::vector<const Node *> &nodes_list = routes_list.at(route_index).getNodes();
 
         // Randomizar el orden en que se borrarán los nodos sin tener que randomizar el vector original.
         std::vector<long> order_of_selected_nodes(Utils::range(nodes_list.size()));
@@ -380,15 +252,16 @@ bool Instance::removeOneNode(std::vector<Route> &solution) const{
 
         for(const long &pos: order_of_selected_nodes){
             const Node *node = nodes_list.at(pos);
-            bool removed_without_problems = route.removeFarm(pos);
+            bool removed_without_problems = alternative.removeFarmFromRoute(route_index, pos);
             if(removed_without_problems){
-                long double new_quality = evaluateSolution(alternative);
+                long double new_quality = alternative.evaluateSolution();
                 if(new_quality > old_quality){
                     Utils::debugPrint("remove: improve quality\n");
+                    solution = alternative;
                     return true;
                 }
             }
-            route.addFarm(pos, node);
+            alternative.addFarmToRoute(route_index, pos, node);
         }
     }
 
@@ -397,11 +270,14 @@ bool Instance::removeOneNode(std::vector<Route> &solution) const{
 }
 
 
-bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solution, std::vector<Route> &alternative, long double old_quality, long src_route_index, Route &src_route, Route &dst_route) const{
-    auto quotas_diff(getQuotasDiff(alternative));
-    bool was_feasible = isFeasible(alternative);
+bool Instance::tryMoveNodeBetweenRoutes(const Solution &original_solution, Solution &alternative, long double old_quality, long src_route_index, long dst_route_index) const{
+    auto quotas_diff(getQuotasDiff(alternative.getRoutes()));
+    bool was_feasible = alternative.isFeasible();
 
-    const std::vector<const Node *> &nodes_list_src = src_route.getNodes();
+    const Route &src_route = alternative.getRoutes().at(src_route_index);
+    const Route &dst_route = alternative.getRoutes().at(dst_route_index);
+
+    const std::vector<const Node *> &nodes_list_src = alternative.getRoutes().at(src_route_index).getNodes();
 
     // Randomizar el orden en que se seleccionarán los nodos de la ruta de origen (node_src),
     // sin tener que randomizar el vector original.
@@ -417,7 +293,7 @@ bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solut
         }
 
         // Se saca el nodo de la ruta de la cual proviene.
-        bool removed_without_problems = src_route.removeFarm(src_nodes_index);
+        bool removed_without_problems = alternative.removeFarmFromRoute(src_route_index, src_nodes_index);
         if(removed_without_problems){
             const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
 
@@ -429,7 +305,7 @@ bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solut
             for(const long &dst_nodes_index: order_of_selected_nodes_dst){
                 // Se agrega el nodo a la ruta de destino en la posición correspondiente
                 // y calcular la calidad de esta nueva solución.
-                bool added_without_problems = dst_route.addFarm(dst_nodes_index, node_src);
+                bool added_without_problems = alternative.addFarmToRoute(dst_route_index, dst_nodes_index, node_src);
 
                 if(added_without_problems){
                     if(!was_feasible){
@@ -443,7 +319,7 @@ bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solut
                     }
                     else{
                         // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
-                        long double new_quality = evaluateSolution(alternative);
+                        long double new_quality = alternative.evaluateSolution();
                         if(new_quality > old_quality){
                             Utils::debugPrint("Move: improve quality\n");
                             Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
@@ -453,20 +329,20 @@ bool Instance::tryMoveNodeBetweenRoutes(const std::vector<Route> &original_solut
                 }
                 // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
                 // esa posición y reintentamos en la siguiente posición.
-                dst_route.removeFarm(dst_nodes_index);
+                alternative.removeFarmFromRoute(dst_route_index, dst_nodes_index);
             }
         }
 
         // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
         // el nodo en su ruta original, y en su posición original.
-        src_route.addFarm(src_nodes_index, node_src);
+        alternative.addFarmToRoute(src_route_index, src_nodes_index, node_src);
     }
 
     return false;
 }
 
-bool Instance::try2OptInRoute(std::vector<Route> &alternative, long double old_quality, Route &route) const{
-    const std::vector<const Node *> &nodes_list = route.getNodes();
+bool Instance::try2OptInRoute(Solution &alternative, long double old_quality, long route_index) const{
+    const std::vector<const Node *> &nodes_list = alternative.getRoutes().at(route_index).getNodes();
 
     // Randomizar el orden de los nodos iniciales con los que se realizará el 2-opt (pos_left),
     // sin tener que randomizar el vector original.
@@ -483,8 +359,8 @@ bool Instance::try2OptInRoute(std::vector<Route> &alternative, long double old_q
         for(const long &pos_right: order_of_selected_nodes_right){
             // Se realiza el 2-opt en el rango seleccionado. Si la solución es de mejor calidad
             // se actualiza la solución y se retorna (Alguna mejora).
-            route.reverseFarmsOrder(pos_left, pos_right);
-            long double new_quality = evaluateSolution(alternative);
+            alternative.reverseFarmsOrderInRoute(route_index, pos_left, pos_right);
+            long double new_quality = alternative.evaluateSolution();
             if(new_quality > old_quality){
                 Utils::debugPrint("2opt: improve quality\n");
                 return true;
@@ -492,7 +368,7 @@ bool Instance::try2OptInRoute(std::vector<Route> &alternative, long double old_q
 
             // En caso de que la solución no sea de mejor calidad, se deshace el 2-opt
             // y se prueba con un rango distinto.
-            route.reverseFarmsOrder(pos_left, pos_right);
+            alternative.reverseFarmsOrderInRoute(route_index, pos_left, pos_right);
         }
     }
 

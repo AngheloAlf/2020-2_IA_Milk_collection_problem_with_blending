@@ -8,7 +8,7 @@ FLAGS = -pipe $(STD) $(DEBUG_SYMBOLS) $(WARNINGS)
 EXECUTABLE = MCPwB.elf
 
 FLAGS_RELEASE = -O2 -DNDEBUG -march=native
-FLAGS_DEBUG = -Og
+FLAGS_DEBUG = -O0
 
 MODE = DEBUG
 ifeq ($(MODE), DEBUG)
@@ -18,14 +18,17 @@ else
 endif
 
 
-all: obj/main.o obj/instance.o obj/milk_type.o obj/milk_types_list.o obj/node.o obj/truck.o obj/route.o obj/utils.o
+all: obj/main.o obj/solution.o obj/instance.o obj/milk_type.o obj/milk_types_list.o obj/node.o obj/truck.o obj/route.o obj/utils.o
 	$(CC) $(FLAGS) $(FLAGS_OTHER) obj/*.o -o $(EXECUTABLE)
 
 
-obj/main.o: src/main.cpp src/*.hpp
+obj/main.o: src/main.cpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/main.cpp -c -o obj/main.o
 
-obj/instance.o: src/instance.cpp src/instance.hpp src/*.hpp
+obj/solution.o: src/solution.cpp src/solution.hpp
+	$(CC) $(FLAGS) $(FLAGS_OTHER) src/solution.cpp -c -o obj/solution.o
+
+obj/instance.o: src/instance.cpp src/instance.hpp
 	$(CC) $(FLAGS) $(FLAGS_OTHER) src/instance.cpp -c -o obj/instance.o
 
 obj/milk_type.o: src/milk_type.cpp src/milk_type.hpp
