@@ -159,10 +159,7 @@ bool Solution::didQuotasDiffImproved(const std::vector<long> &quotas_diff) const
     return false;
 }
 
-bool Solution::didCapacitiesLeftImproved(long src_route_index, const Route &src_route, const Route &dst_route) const{
-    if(dst_route.getCapacityLeft() < 0){
-        return false;
-    }
+bool Solution::didCapacitiesLeftImproved(long src_route_index, const Route &src_route) const{
     if(routes.at(src_route_index).getCapacityLeft() < 0){
         if(src_route.getCapacityLeft() > routes.at(src_route_index).getCapacityLeft()){
             return true;
@@ -170,6 +167,12 @@ bool Solution::didCapacitiesLeftImproved(long src_route_index, const Route &src_
     }
 
     return false;
+}
+bool Solution::didCapacitiesLeftImproved(long src_route_index, const Route &src_route, const Route &dst_route) const{
+    if(dst_route.getCapacityLeft() < 0){
+        return false;
+    }
+    return didCapacitiesLeftImproved(src_route_index, src_route);
 }
 
 
@@ -235,17 +238,6 @@ Solution Solution::hillClimbing(long K) const{
         }
     }
     Utils::debugPrint("\n");
-
-    /*for(; i < K; ++i){
-        bool is_better_solution = solution.movement_removeOneNode();
-        if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
-        if(is_better_solution){
-            best_solution = solution;
-        }
-        else{
-            break;
-        }
-    }*/
 
     return best_solution;
 }
@@ -320,8 +312,10 @@ bool Solution::movement_intraLocalSearch(){
 }
 
 bool Solution::movement_removeOneNode(){
-    long double old_quality = evaluateSolution();
     Solution alternative(*this);
+    long double old_quality = evaluateSolution();
+    auto quotas_diff(alternative.getQuotasDiff());
+    bool was_feasible = isFeasible();
 
     const std::vector<Route> &routes_list = alternative.getRoutes();
 
@@ -331,7 +325,7 @@ bool Solution::movement_removeOneNode(){
     Utils::randomizeVector(order_of_selected_routes);
 
     for(const long &route_index: order_of_selected_routes){
-        //Route &route = routes_list.at(route_index);
+        const Route &route = routes_list.at(route_index);
 
         const std::vector<const Node *> &nodes_list = routes_list.at(route_index).getNodes();
 
@@ -343,10 +337,19 @@ bool Solution::movement_removeOneNode(){
             const Node *node = nodes_list.at(pos);
             bool removed_without_problems = alternative.removeFarmFromRoute(route_index, pos);
             if(removed_without_problems){
+                if(!was_feasible){
+                    bool capacities_improved = (*this).didCapacitiesLeftImproved(route_index, route);
+                    bool quotas_improved = alternative.didQuotasDiffImproved(quotas_diff);
+                    if(capacities_improved || quotas_improved){
+                        Utils::debugPrint("Remove: improve feasibility. ");
+                        Utils::debugPrint("\tNode: %ld \tTruck: %ld\n", (*node).getId(), route.getTruckId());
+                        *this = alternative;
+                        return true;
+                    }
+                }
                 long double new_quality = alternative.evaluateSolution();
                 if(new_quality > old_quality){
-                    Utils::debugPrint("remove: improve quality\n");
-                    //solution = alternative;
+                    Utils::debugPrint("Remove: improve quality\n");
                     *this = alternative;
                     return true;
                 }
@@ -402,19 +405,17 @@ bool Solution::tryMoveNodeBetweenRoutes(const Solution &original_solution, long 
                         bool capacities_improved = original_solution.didCapacitiesLeftImproved(src_route_index, src_route, dst_route);
                         bool quotas_improved = didQuotasDiffImproved(quotas_diff);
                         if(capacities_improved || quotas_improved){
-                            Utils::debugPrint("Move: improve feasibility\n");
-                            Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                            Utils::debugPrint("Move: improve feasibility. ");
+                            Utils::debugPrint("\tNode: %ld \tTruck src: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                             return true;
                         }
                     }
-                    else{
-                        // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
-                        long double new_quality = evaluateSolution();
-                        if(new_quality > old_quality){
-                            Utils::debugPrint("Move: improve quality\n");
-                            Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
-                            return true;
-                        }
+                    // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
+                    long double new_quality = evaluateSolution();
+                    if(new_quality > old_quality){
+                        Utils::debugPrint("Move: improve quality\n");
+                        Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                        return true;
                     }
                 }
                 // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de

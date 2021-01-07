@@ -34,6 +34,8 @@ public:
     [[nodiscard]]
     bool didQuotasDiffImproved(const std::vector<long> &quotas_diff) const;
     [[nodiscard]]
+    bool didCapacitiesLeftImproved(long src_route_index, const Route &src_route) const;
+    [[nodiscard]]
     bool didCapacitiesLeftImproved(long src_route_index, const Route &src_route, const Route &dst_route) const;
 
     [[nodiscard]]
