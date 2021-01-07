@@ -3,7 +3,7 @@ STD = -std=c++17
 DEBUG_SYMBOLS = -g -g3
 WARNINGS = -Wall -Wextra -Wshadow -Wpedantic# -Wpadded -Wsign-conversion
 WARNINGS_EVERYTHING = $(WARNINGS) -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-format-nonliteral -Wno-padded -Wno-old-style-cast
-FLAGS = -pipe $(STD) $(DEBUG_SYMBOLS) $(WARNINGS)
+FLAGS = -pipe -fno-omit-frame-pointer $(STD) $(DEBUG_SYMBOLS) $(WARNINGS)
 # FLAGS = -pipe $(STD) $(WARNINGS_EVERYTHING)
 EXECUTABLE = MCPwB.elf
 
@@ -23,31 +23,31 @@ all: obj/main.o obj/solution.o obj/instance.o obj/milk_type.o obj/milk_types_lis
 
 
 obj/main.o: src/main.cpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/main.cpp -c -o obj/main.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/main.cpp -o obj/main.o
 
 obj/solution.o: src/solution.cpp src/solution.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/solution.cpp -c -o obj/solution.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/solution.cpp -o obj/solution.o
 
 obj/instance.o: src/instance.cpp src/instance.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/instance.cpp -c -o obj/instance.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/instance.cpp -o obj/instance.o
 
 obj/milk_type.o: src/milk_type.cpp src/milk_type.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/milk_type.cpp -c -o obj/milk_type.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/milk_type.cpp -o obj/milk_type.o
 
 obj/milk_types_list.o: src/milk_types_list.cpp src/milk_types_list.hpp src/milk_type.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/milk_types_list.cpp -c -o obj/milk_types_list.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/milk_types_list.cpp -o obj/milk_types_list.o
 
 obj/node.o: src/node.cpp src/node.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/node.cpp -c -o obj/node.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/node.cpp -o obj/node.o
 
 obj/truck.o: src/truck.cpp src/truck.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/truck.cpp -c -o obj/truck.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/truck.cpp -o obj/truck.o
 
 obj/route.o: src/route.cpp src/route.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) src/route.cpp -c -o obj/route.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c src/route.cpp -o obj/route.o
 
 obj/utils.o: src/utils.cpp src/utils.hpp
-	$(CC) $(FLAGS) $(FLAGS_OTHER) -Wno-pedantic src/utils.cpp -c -o obj/utils.o
+	$(CC) $(FLAGS) $(FLAGS_OTHER) -c -Wno-pedantic src/utils.cpp -o obj/utils.o
 
 
 clean:

@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include "instance.hpp"
+#include "solution.hpp"
 #include "utils.hpp"
 
 #define BASE10 (10)
@@ -76,14 +77,14 @@ int main(int argc, char **argv){
     Instance inst(filename);
     if(Utils::debugPrintingEnabled) inst.print(true);
 
-    auto sol = inst.initialSolution();
+    auto sol = Solution::initialSolution(&inst);
     if(Utils::debugPrintingEnabled){
         printf("Initial solution:\n");
         sol.print(true);
         printf("\n");
     }
 
-    auto optimal(inst.hillClimbing(sol, K));
+    auto optimal(sol.hillClimbing(K));
 
     if(Utils::debugPrintingEnabled){
         printf("Final solution:\n");
