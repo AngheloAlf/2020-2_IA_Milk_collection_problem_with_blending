@@ -233,30 +233,34 @@ Solution Solution::hillClimbing(long K) const{
 
     if(Utils::debugPrintingEnabled) Utils::debugPrint("initial_quality: %Lf\n\n", solution.evaluateSolution());
 
-    std::vector<long> order_of_movements(Utils::range(4));
+    const long movements_amount = 4;
+    std::vector<long> order_of_movements(Utils::range(movements_amount));
 
     long i = 0;
-    for(; i < K; ++i){
+    while(i < K){
         bool is_better_solution = false;
         Utils::randomizeVector(order_of_movements);
-        for(auto &movement: order_of_movements){
+
+        for(int j = 0; !is_better_solution && j < movements_amount && i < K; ++j, ++i){
+            long movement = order_of_movements[j];
             switch (movement){
             case 0:
-                is_better_solution |= solution.movement_moveNodeBetweenRoutes();
+                is_better_solution = solution.movement_moveNodeBetweenRoutes();
                 break;
             case 1:
-                is_better_solution |= solution.movement_2OptIntraRoute();
+                is_better_solution = solution.movement_2OptIntraRoute();
                 break;
             case 2:
-                is_better_solution |= solution.movement_removeOneNode();
+                is_better_solution = solution.movement_removeOneNode();
                 break;
             case 3:
-                is_better_solution |= solution.movement_interchangeNodesBetweenRoutes();
+                is_better_solution = solution.movement_interchangeNodesBetweenRoutes();
                 break;
             }
+
+            if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
         }
 
-        if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
         if(!is_better_solution){
             break;
         }
@@ -332,7 +336,7 @@ bool Solution::movement_moveNodeBetweenRoutes(){
                             bool quotas_improved = didQuotasDiffImproved(quotas_diff);
                             if(capacities_improved || quotas_improved){
                                 Utils::debugPrint("Move: improve feasibility. ");
-                                Utils::debugPrint("\tNode: %ld \tTruck src: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                                Utils::debugPrint("\tNode: %ld \tTrucksrc: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                                 return true;
                             }
                         }
@@ -340,7 +344,7 @@ bool Solution::movement_moveNodeBetweenRoutes(){
                         long double new_quality = evaluateSolution();
                         if(new_quality > old_quality){
                             Utils::debugPrint("Move: improve quality\n");
-                            Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                            Utils::debugPrint("\tNode: %ld\n\tTrucksrc: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                             return true;
                         }
 
@@ -504,7 +508,7 @@ bool Solution::movement_interchangeNodesBetweenRoutes(){
                         bool quotas_improved = didQuotasDiffImproved(quotas_diff);
                         if(capacities_improved || quotas_improved){
                             Utils::debugPrint("Interchange: improve feasibility. ");
-                            Utils::debugPrint("\tNode: %ld \tTruck src: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                            Utils::debugPrint("\tNode: %ld \tTrucksrc: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                             return true;
                         }
                     }
@@ -512,7 +516,7 @@ bool Solution::movement_interchangeNodesBetweenRoutes(){
                     long double new_quality = evaluateSolution();
                     if(new_quality > old_quality){
                         Utils::debugPrint("Interchange: improve quality\n");
-                        Utils::debugPrint("\tNode src: %ld\n\tNode dst: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), (*node_dst).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                        Utils::debugPrint("\tNode src: %ld\n\tNode dst: %ld\n\tTrucksrc: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), (*node_dst).getId(), src_route.getTruckId(), dst_route.getTruckId());
                         return true;
                     }
 
