@@ -53,6 +53,10 @@ void Route::setTruck(const Truck &truck){
     this->capacityLeft = truck.getCapacity();
 }
 
+bool Route::isFarmMilkCompatibleWithCurrentMilkType(const Node *farm) const{
+    return (*farm).getQuality() <= milkType;
+}
+
 bool Route::canAddFarm(const Node *farm) const{
     assert((*farm).getQuality() != '-');
     // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
@@ -81,15 +85,8 @@ bool Route::canRemoveFarm(long position) const{
 void Route::addFarm(const Node *farm){
     assert((*farm).getQuality() != '-');
     nodes.push_back(farm);
-    capacityLeft -= (*farm).getProduced();
-    milkAmount += (*farm).getProduced();
 
-    nodes_counter[(*farm).getQuality()-'A'] += 1;
-
-    // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
-    if((*farm).getQuality() > milkType){
-        milkType = (*farm).getQuality();
-    }
+    addFarm_updateValues(farm);
     changed = true;
 }
 void Route::addFarm(long position, const Node *farm){
@@ -99,15 +96,8 @@ void Route::addFarm(long position, const Node *farm){
 
     auto iter = nodes.begin() + position;
     nodes.insert(iter, farm);
-    capacityLeft -= (*farm).getProduced();
-    milkAmount += (*farm).getProduced();
 
-    nodes_counter[(*farm).getQuality()-'A'] += 1;
-
-    // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
-    if((*farm).getQuality() > milkType){
-        milkType = (*farm).getQuality();
-    }
+    addFarm_updateValues(farm);
     changed = true;
 }
 
@@ -116,17 +106,8 @@ void Route::removeFarm(long position){
     assert((unsigned long)position < nodes.size());
 
     auto iter = nodes.begin() + position;
-    const Node *node = *iter;
 
-    capacityLeft += (*node).getProduced();
-    milkAmount -= (*node).getProduced();
-
-    nodes_counter[(*node).getQuality()-'A'] -= 1;
-
-    // Si la calidad de la leche de esa granja es la peor, es posible que el conjunto mejore al removerla.
-    if((*node).getQuality() == milkType && nodes_counter[(*node).getQuality()-'A'] == 0){
-        milkType = recalculateMilkType();
-    }
+    removeFarm_updateValues(position);
 
     nodes.erase(iter);
     changed = true;
@@ -136,6 +117,18 @@ void Route::reverseFarmsOrder(long left, long right){
     changed = true;
 }
 
+void Route::setFarm(long position, const Node *farm){
+    assert(position >= 0);
+    assert((unsigned long)position < nodes.size());
+    assert((*farm).getQuality() != '-');
+
+    removeFarm_updateValues(position);
+    addFarm_updateValues(farm);
+
+    nodes[position] = farm;
+
+    changed = true;
+}
 
 bool Route::doesFulfilQuota() const{
     return milkAmount >= getMilkTypeInfo().getMilkQuota(); 
@@ -228,4 +221,29 @@ char Route::recalculateMilkType() const{
         }
     }
     return 0;
+}
+
+void Route::addFarm_updateValues(const Node *farm){
+    capacityLeft -= (*farm).getProduced();
+    milkAmount += (*farm).getProduced();
+
+    nodes_counter[(*farm).getQuality()-'A'] += 1;
+
+    // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
+    if((*farm).getQuality() > milkType){
+        milkType = (*farm).getQuality();
+    }
+}
+void Route::removeFarm_updateValues(long position){
+    const Node *node = nodes.at(position);
+
+    capacityLeft += (*node).getProduced();
+    milkAmount -= (*node).getProduced();
+
+    nodes_counter[(*node).getQuality()-'A'] -= 1;
+
+    // Si la calidad de la leche de esa granja es la peor, es posible que el conjunto mejore al removerla.
+    if((*node).getQuality() == milkType && nodes_counter[(*node).getQuality()-'A'] == 0){
+        milkType = recalculateMilkType();
+    }
 }

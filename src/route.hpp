@@ -29,6 +29,9 @@ public:
 
     void setTruck(const Truck &truck);
 
+    [[nodiscard]]
+    bool isFarmMilkCompatibleWithCurrentMilkType(const Node *farm) const;
+
     /// Retorna `false` si al agregar la granja se estaría violando alguna restricción (capacidad del camión, etc...).
     /// Retorna `true` en caso contrario.
     [[nodiscard]]
@@ -47,6 +50,9 @@ public:
     void removeFarm(long position);
 
     void reverseFarmsOrder(long left, long right);
+
+    /// Setea la granja a la ruta en la posición especificada.
+    void setFarm(long position, const Node *farm);
 
     [[nodiscard]]
     bool doesFulfilQuota() const;
@@ -73,6 +79,9 @@ private:
 
     [[nodiscard]]
     char recalculateMilkType() const;
+
+    void addFarm_updateValues(const Node *farm);
+    void removeFarm_updateValues(long position);
 };
 
 #endif
