@@ -84,9 +84,10 @@ bool Route::canRemoveFarm(long position) const{
 
 void Route::addFarm(const Node *farm){
     assert((*farm).getQuality() != '-');
-    nodes.push_back(farm);
 
     addFarm_updateValues(farm);
+
+    nodes.push_back(farm);
     changed = true;
 }
 void Route::addFarm(long position, const Node *farm){
@@ -94,25 +95,28 @@ void Route::addFarm(long position, const Node *farm){
     assert((unsigned long)position <= nodes.size());
     assert((*farm).getQuality() != '-');
 
-    auto iter = nodes.begin() + position;
-    nodes.insert(iter, farm);
-
     addFarm_updateValues(farm);
+
+    nodes.insert(nodes.begin() + position, farm);
+
     changed = true;
 }
 
 void Route::removeFarm(long position){
+    assert(!nodes.empty());
     assert(position >= 0);
     assert((unsigned long)position < nodes.size());
 
-    auto iter = nodes.begin() + position;
-
     removeFarm_updateValues(position);
 
-    nodes.erase(iter);
+    nodes.erase(nodes.begin() + position);
     changed = true;
 }
 void Route::reverseFarmsOrder(long left, long right){
+    assert(left >= 0);
+    assert(static_cast<unsigned long>(right) < nodes.size());
+    assert(left < right);
+
     std::reverse(nodes.begin() + left, nodes.begin() + right);
     changed = true;
 }
@@ -153,15 +157,7 @@ long double Route::evaluateRoute(const Node *initial_node){
         return quality;
     }
     long double distance_penalty = 0;
-
-    const auto &current_milk_type = getMilkTypeInfo();
-
-    long double profit_percentage = current_milk_type.getMilkProfit();
-    /*long quota = current_milk_type.getMilkQuota();
-    // Restricción: Se debe superar la cuota mínima de la planta.
-    if(milkAmount < quota){
-        return 0;
-    }*/
+    long double profit_percentage = getMilkTypeInfo().getMilkProfit();
 
     // Restricción: Un camión sale de la planta procesadora y vuelve a ella al final del día.
     const Node *prev_node = initial_node;
@@ -189,7 +185,6 @@ long double Route::calculateTransportCosts(const Node *initial_node) const{
     const Node *prev_node = initial_node;
     for(const auto &node: nodes){
         distance_penalty += (*node).cachedDistance(*prev_node);
-
         prev_node = node;
     }
 

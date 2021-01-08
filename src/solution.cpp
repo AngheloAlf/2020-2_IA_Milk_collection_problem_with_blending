@@ -313,49 +313,51 @@ bool Solution::movement_moveNodeBetweenRoutes(){
 
                 // Se saca el nodo de la ruta de la cual proviene.
                 bool can_be_removed_without_problems = canRemoveFarmFromRoute(src_route_index, src_nodes_index);
-                if(can_be_removed_without_problems){
-                    removeFarmFromRoute(src_route_index, src_nodes_index);
-                    const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
+                if(!can_be_removed_without_problems){
+                    continue;
+                }
 
-                    // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
-                    // sin tener que randomizar el vector original.
-                    std::vector<long> order_of_selected_nodes_dst(Utils::range(nodes_list_dst.size()));
-                    Utils::randomizeVector(order_of_selected_nodes_dst);
-                    for(const long &dst_nodes_index: order_of_selected_nodes_dst){
-                        bool can_be_added_without_problems = canAddFarmToRoute(dst_route_index, node_src);
-                        if(!can_be_added_without_problems){
-                            continue;
-                        }
+                removeFarmFromRoute(src_route_index, src_nodes_index);
+                const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
 
-                        // Se agrega el nodo a la ruta de destino en la posición correspondiente
-                        // y calcular la calidad de esta nueva solución.
-                        addFarmToRoute(dst_route_index, dst_nodes_index, node_src);
+                // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
+                // sin tener que randomizar el vector original.
+                std::vector<long> order_of_selected_nodes_dst(Utils::range(nodes_list_dst.size()));
+                Utils::randomizeVector(order_of_selected_nodes_dst);
+                for(const long &dst_nodes_index: order_of_selected_nodes_dst){
+                    bool can_be_added_without_problems = canAddFarmToRoute(dst_route_index, node_src);
+                    if(!can_be_added_without_problems){
+                        continue;
+                    }
 
-                        if(!was_feasible){
-                            bool capacities_improved = didCapacitiesLeftImproved(src_old_capacity_left, src_route.getCapacityLeft(), dst_route.getCapacityLeft());
-                            bool quotas_improved = didQuotasDiffImproved(quotas_diff);
-                            if(capacities_improved || quotas_improved){
-                                Utils::debugPrint("Move: improve feasibility. ");
-                                Utils::debugPrint("\tNode: %ld \tTrucksrc: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
-                                return true;
-                            }
-                        }
-                        // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
-                        long double new_quality = evaluateSolution();
-                        if(new_quality > old_quality){
-                            Utils::debugPrint("Move: improve quality\n");
-                            Utils::debugPrint("\tNode: %ld\n\tTrucksrc: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                    // Se agrega el nodo a la ruta de destino en la posición correspondiente
+                    // y calcular la calidad de esta nueva solución.
+                    addFarmToRoute(dst_route_index, dst_nodes_index, node_src);
+
+                    if(!was_feasible){
+                        bool capacities_improved = didCapacitiesLeftImproved(src_old_capacity_left, src_route.getCapacityLeft(), dst_route.getCapacityLeft());
+                        bool quotas_improved = didQuotasDiffImproved(quotas_diff);
+                        if(capacities_improved || quotas_improved){
+                            Utils::debugPrint("Move: improve feasibility. ");
+                            Utils::debugPrint("\tNode: %ld \tTrucksrc: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                             return true;
                         }
-
-                        // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
-                        // esa posición y reintentamos en la siguiente posición.
-                        removeFarmFromRoute(dst_route_index, dst_nodes_index);
                     }
-                    // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
-                    // el nodo en su ruta original, y en su posición original.
-                    addFarmToRoute(src_route_index, src_nodes_index, node_src);
+                    // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
+                    long double new_quality = evaluateSolution();
+                    if(new_quality > old_quality){
+                        Utils::debugPrint("Move: improve quality\n");
+                        Utils::debugPrint("\tNode: %ld\n\tTrucksrc: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                        return true;
+                    }
+
+                    // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
+                    // esa posición y reintentamos en la siguiente posición.
+                    removeFarmFromRoute(dst_route_index, dst_nodes_index);
                 }
+                // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
+                // el nodo en su ruta original, y en su posición original.
+                addFarmToRoute(src_route_index, src_nodes_index, node_src);
             }
         }
     }
