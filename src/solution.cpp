@@ -193,20 +193,11 @@ bool Solution::didCapacitiesLeftImproved(long src_old_capacity_left, long src_ne
     }
     return false;
 }
-bool Solution::didCapacitiesLeftImproved(long src_route_index, const Route &src_route) const{
-    if(routes.at(src_route_index).getCapacityLeft() < 0){
-        if(src_route.getCapacityLeft() > routes.at(src_route_index).getCapacityLeft()){
-            return true;
-        }
-    }
-
-    return false;
-}
-bool Solution::didCapacitiesLeftImproved(long src_route_index, const Route &src_route, const Route &dst_route) const{
-    if(dst_route.getCapacityLeft() < 0){
+bool Solution::didCapacitiesLeftImproved(long old_capacity_left, long new_capacity_left, long dst_new_capacity_left) const{
+    if(dst_new_capacity_left < 0){
         return false;
     }
-    return didCapacitiesLeftImproved(src_route_index, src_route);
+    return didCapacitiesLeftImproved(old_capacity_left, new_capacity_left);
 }
 
 
@@ -238,10 +229,9 @@ long double Solution::calculateMilkProfits() const{
 
 
 Solution Solution::hillClimbing(long K) const{
-    Solution best_solution(*this);
     Solution solution(*this);
 
-    if(Utils::debugPrintingEnabled) Utils::debugPrint("initial_quality: %Lf\n\n", best_solution.evaluateSolution());
+    if(Utils::debugPrintingEnabled) Utils::debugPrint("initial_quality: %Lf\n\n", solution.evaluateSolution());
 
     std::vector<long> order_of_movements(Utils::range(4));
 
@@ -267,51 +257,38 @@ Solution Solution::hillClimbing(long K) const{
         }
 
         if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
-        if(is_better_solution){
-            best_solution = solution;
-        }
-        else{
+        if(!is_better_solution){
             break;
         }
     }
     Utils::debugPrint("\n");
 
-    return best_solution;
+    return solution;
 }
 
 
 // Mover un nodo de una ruta a las demás rutas.
 bool Solution::movement_extraLocalSearch(){
     long double old_quality = evaluateSolution();
-    Solution alternative(*this);
-
-    const std::vector<Route> &routes_list = alternative.getRoutes();
 
     // Randomizar el orden en que se seleccionarán las rutas de origen (src_route),
     // sin tener que randomizar el vector original.
-    std::vector<long> order_of_selected_routes_src(Utils::range(routes_list.size()));
+    std::vector<long> order_of_selected_routes_src(Utils::range(routes.size()));
     Utils::randomizeVector(order_of_selected_routes_src);
-
     for(const long &src_route_index: order_of_selected_routes_src){
-        //Route &src_route = alternative.at(src_route_index);
 
         // Randomizar el orden en que se seleccionarán las rutas de destino (dst_route),
         // sin tener que randomizar el vector original.
-        std::vector<long> order_of_selected_routes_dst(Utils::range(routes_list.size()));
+        std::vector<long> order_of_selected_routes_dst(Utils::range(routes.size()));
         Utils::randomizeVector(order_of_selected_routes_dst);
-
         for(const long &dst_route_index: order_of_selected_routes_dst){
             // Verificar que la ruta destino no sea la misma que la ruta origen.
             if(src_route_index == dst_route_index){
                 continue;
             }
 
-            //Route &dst_route = alternative.at(dst_route_index);
-
-            bool did_quality_improved = alternative.tryMoveNodeBetweenRoutes(*this, old_quality, src_route_index, dst_route_index);
+            bool did_quality_improved = tryMoveNodeBetweenRoutes(old_quality, src_route_index, dst_route_index);
             if(did_quality_improved){
-                //solution = alternative;
-                *this = alternative;
                 return true;
             }
         }
@@ -324,22 +301,15 @@ bool Solution::movement_extraLocalSearch(){
 // Movimiento 2-opt de la ruta consigo misma.
 bool Solution::movement_intraLocalSearch(){
     long double old_quality = evaluateSolution();
-    Solution alternative(*this);
-
-    const std::vector<Route> &routes_list = alternative.getRoutes();
 
     // Randomizar el orden en que se seleccionarán las rutas (route);
     // sin tener que randomizar el vector original.
-    std::vector<long> order_of_selected_routes(Utils::range(routes_list.size()));
+    std::vector<long> order_of_selected_routes(Utils::range(routes.size()));
     Utils::randomizeVector(order_of_selected_routes);
 
     for(const long &route_index: order_of_selected_routes){
-        //Route &route = alternative.at(route_index);
-
-        bool did_quality_improved = alternative.try2OptInRoute(old_quality, route_index);
+        bool did_quality_improved = try2OptInRoute(old_quality, route_index);
         if(did_quality_improved){
-            //solution = alternative;
-            *this = alternative;
             return true;
         }
     }
@@ -349,50 +319,47 @@ bool Solution::movement_intraLocalSearch(){
 }
 
 bool Solution::movement_removeOneNode(){
-    Solution alternative(*this);
     long double old_quality = evaluateSolution();
-    auto quotas_diff(alternative.getQuotasDiff());
+    auto quotas_diff(getQuotasDiff());
     bool was_feasible = isFeasible();
-
-    const std::vector<Route> &routes_list = alternative.getRoutes();
 
     // Randomizar el orden en que se seleccionarán las rutas (route);
     // sin tener que randomizar el vector original.
-    std::vector<long> order_of_selected_routes(Utils::range(routes_list.size()));
+    std::vector<long> order_of_selected_routes(Utils::range(routes.size()));
     Utils::randomizeVector(order_of_selected_routes);
-
     for(const long &route_index: order_of_selected_routes){
-        const Route &route = routes_list.at(route_index);
-
-        const std::vector<const Node *> &nodes_list = routes_list.at(route_index).getNodes();
+        const Route &route = routes.at(route_index);
+        long old_capacity_left = route.getCapacityLeft();
+        const std::vector<const Node *> &nodes_list = route.getNodes();
 
         // Randomizar el orden en que se borrarán los nodos sin tener que randomizar el vector original.
         std::vector<long> order_of_selected_nodes(Utils::range(nodes_list.size()));
         Utils::randomizeVector(order_of_selected_nodes);
-
         for(const long &pos: order_of_selected_nodes){
+            bool can_be_removed_without_problems = canRemoveFarmFromRoute(route_index, pos);
+            if(!can_be_removed_without_problems){
+                continue;
+            }
+
             const Node *node = nodes_list.at(pos);
-            bool can_be_removed_without_problems = alternative.canRemoveFarmFromRoute(route_index, pos);
-            if(can_be_removed_without_problems){
-                alternative.removeFarmFromRoute(route_index, pos);
-                if(!was_feasible){
-                    bool capacities_improved = (*this).didCapacitiesLeftImproved(route_index, route);
-                    bool quotas_improved = alternative.didQuotasDiffImproved(quotas_diff);
-                    if(capacities_improved || quotas_improved){
-                        Utils::debugPrint("Remove: improve feasibility. ");
-                        Utils::debugPrint("\tNode: %ld \tTruck: %ld\n", (*node).getId(), route.getTruckId());
-                        *this = alternative;
-                        return true;
-                    }
-                }
-                long double new_quality = alternative.evaluateSolution();
-                if(new_quality > old_quality){
-                    Utils::debugPrint("Remove: improve quality\n");
-                    *this = alternative;
+            removeFarmFromRoute(route_index, pos);
+
+            if(!was_feasible){
+                bool capacities_improved = didCapacitiesLeftImproved(old_capacity_left, route.getCapacityLeft());
+                bool quotas_improved = didQuotasDiffImproved(quotas_diff);
+                if(capacities_improved || quotas_improved){
+                    Utils::debugPrint("Remove: improve feasibility. ");
+                    Utils::debugPrint("\tNode: %ld \tTruck: %ld\n", (*node).getId(), route.getTruckId());
                     return true;
                 }
-                alternative.addFarmToRoute(route_index, pos, node);
             }
+            long double new_quality = evaluateSolution();
+            if(new_quality > old_quality){
+                Utils::debugPrint("Remove: improve quality\n");
+                return true;
+            }
+
+            addFarmToRoute(route_index, pos, node);
         }
     }
 
@@ -436,33 +403,36 @@ bool Solution::movement_interchangeNodesBetweenRoutes(){
                 Utils::randomizeVector(order_of_selected_nodes_dst);
                 for(const long &dst_nodes_index: order_of_selected_nodes_dst){
                     const Node *node_dst = nodes_list_dst.at(dst_nodes_index);
-                    if(src_route.isFarmMilkCompatibleWithCurrentMilkType(node_dst) && dst_route.isFarmMilkCompatibleWithCurrentMilkType(node_src)){
-                        setFarmInRoute(src_route_index, src_nodes_index, node_dst);
-                        setFarmInRoute(dst_route_index, dst_nodes_index, node_src);
 
-                        if(!was_feasible){
-                            bool capacities_improved = didCapacitiesLeftImproved(src_old_capacity_left, src_route.getCapacityLeft(), dst_old_capacity_left, dst_route.getCapacityLeft());
-                            bool quotas_improved = didQuotasDiffImproved(quotas_diff);
-                            if(capacities_improved || quotas_improved){
-                                Utils::debugPrint("Interchange: improve feasibility. ");
-                                Utils::debugPrint("\tNode: %ld \tTruck src: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
-                                return true;
-                            }
-                        }
-                        // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
-                        long double new_quality = evaluateSolution();
-                        if(new_quality > old_quality){
-                            Utils::debugPrint("Interchange: improve quality\n");
-                            Utils::debugPrint("\tNode src: %ld\n\tNode dst: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), (*node_dst).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                    bool interchange_compatible = src_route.isFarmMilkCompatibleWithCurrentMilkType(node_dst) && dst_route.isFarmMilkCompatibleWithCurrentMilkType(node_src);
+                    if(!interchange_compatible){
+                        continue;
+                    }
+
+                    setFarmInRoute(src_route_index, src_nodes_index, node_dst);
+                    setFarmInRoute(dst_route_index, dst_nodes_index, node_src);
+
+                    if(!was_feasible){
+                        bool capacities_improved = didCapacitiesLeftImproved(src_old_capacity_left, src_route.getCapacityLeft(), dst_old_capacity_left, dst_route.getCapacityLeft());
+                        bool quotas_improved = didQuotasDiffImproved(quotas_diff);
+                        if(capacities_improved || quotas_improved){
+                            Utils::debugPrint("Interchange: improve feasibility. ");
+                            Utils::debugPrint("\tNode: %ld \tTruck src: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                             return true;
                         }
-
-                        setFarmInRoute(src_route_index, src_nodes_index, node_src);
-                        setFarmInRoute(dst_route_index, dst_nodes_index, node_dst);
                     }
+                    // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
+                    long double new_quality = evaluateSolution();
+                    if(new_quality > old_quality){
+                        Utils::debugPrint("Interchange: improve quality\n");
+                        Utils::debugPrint("\tNode src: %ld\n\tNode dst: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), (*node_dst).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                        return true;
+                    }
+
+                    setFarmInRoute(src_route_index, src_nodes_index, node_src);
+                    setFarmInRoute(dst_route_index, dst_nodes_index, node_dst);
                 }
             }
-
         }
     }
 
@@ -471,7 +441,7 @@ bool Solution::movement_interchangeNodesBetweenRoutes(){
 }
 
 
-bool Solution::tryMoveNodeBetweenRoutes(const Solution &original_solution, long double old_quality, long src_route_index, long dst_route_index){
+bool Solution::tryMoveNodeBetweenRoutes(long double old_quality, long src_route_index, long dst_route_index){
     auto quotas_diff(getQuotasDiff());
     bool was_feasible = isFeasible();
 
@@ -480,11 +450,12 @@ bool Solution::tryMoveNodeBetweenRoutes(const Solution &original_solution, long 
 
     const std::vector<const Node *> &nodes_list_src = src_route.getNodes();
 
+    long src_old_capacity_left = src_route.getCapacityLeft();
+
     // Randomizar el orden en que se seleccionarán los nodos de la ruta de origen (node_src),
     // sin tener que randomizar el vector original.
     std::vector<long> order_of_selected_nodes_src(Utils::range(nodes_list_src.size()));
     Utils::randomizeVector(order_of_selected_nodes_src);
-
     for(const long &src_nodes_index: order_of_selected_nodes_src){
         const Node *node_src = nodes_list_src.at(src_nodes_index);
 
@@ -503,33 +474,36 @@ bool Solution::tryMoveNodeBetweenRoutes(const Solution &original_solution, long 
             // sin tener que randomizar el vector original.
             std::vector<long> order_of_selected_nodes_dst(Utils::range(nodes_list_dst.size()));
             Utils::randomizeVector(order_of_selected_nodes_dst);
-
             for(const long &dst_nodes_index: order_of_selected_nodes_dst){
+                bool can_be_added_without_problems = canAddFarmToRoute(dst_route_index, node_src);
+                if(!can_be_added_without_problems){
+                    continue;
+                }
+
                 // Se agrega el nodo a la ruta de destino en la posición correspondiente
                 // y calcular la calidad de esta nueva solución.
-                bool can_be_added_without_problems = canAddFarmToRoute(dst_route_index, node_src);
-                if(can_be_added_without_problems){
-                    addFarmToRoute(dst_route_index, dst_nodes_index, node_src);
-                    if(!was_feasible){
-                        bool capacities_improved = original_solution.didCapacitiesLeftImproved(src_route_index, src_route, dst_route);
-                        bool quotas_improved = didQuotasDiffImproved(quotas_diff);
-                        if(capacities_improved || quotas_improved){
-                            Utils::debugPrint("Move: improve feasibility. ");
-                            Utils::debugPrint("\tNode: %ld \tTruck src: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
-                            return true;
-                        }
-                    }
-                    // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
-                    long double new_quality = evaluateSolution();
-                    if(new_quality > old_quality){
-                        Utils::debugPrint("Move: improve quality\n");
-                        Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                addFarmToRoute(dst_route_index, dst_nodes_index, node_src);
+
+                if(!was_feasible){
+                    bool capacities_improved = didCapacitiesLeftImproved(src_old_capacity_left, src_route.getCapacityLeft(), dst_route.getCapacityLeft());
+                    bool quotas_improved = didQuotasDiffImproved(quotas_diff);
+                    if(capacities_improved || quotas_improved){
+                        Utils::debugPrint("Move: improve feasibility. ");
+                        Utils::debugPrint("\tNode: %ld \tTruck src: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                         return true;
                     }
-                    // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
-                    // esa posición y reintentamos en la siguiente posición.
-                    removeFarmFromRoute(dst_route_index, dst_nodes_index);
                 }
+                // Si la calidad es mejor, actualizamos la solución y retornamos (Alguna mejora).
+                long double new_quality = evaluateSolution();
+                if(new_quality > old_quality){
+                    Utils::debugPrint("Move: improve quality\n");
+                    Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                    return true;
+                }
+
+                // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
+                // esa posición y reintentamos en la siguiente posición.
+                removeFarmFromRoute(dst_route_index, dst_nodes_index);
             }
             // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
             // el nodo en su ruta original, y en su posición original.
@@ -547,18 +521,18 @@ bool Solution::try2OptInRoute(long double old_quality, long route_index){
     // sin tener que randomizar el vector original.
     std::vector<long> order_of_selected_nodes_left(Utils::range(nodes_list.size()));
     Utils::randomizeVector(order_of_selected_nodes_left);
-
     for(const long &pos_left: order_of_selected_nodes_left){
+
         // Randomizar el orden de los nodos finales con los que se realizará el 2-opt (pos_right),
         // sin tener que randomizar el vector original.
         // El nodo final siempre estará "más a la derecha" que el nodo inicial.
         std::vector<long> order_of_selected_nodes_right(Utils::range(pos_left+1, nodes_list.size()));
         Utils::randomizeVector(order_of_selected_nodes_right);
-
         for(const long &pos_right: order_of_selected_nodes_right){
             // Se realiza el 2-opt en el rango seleccionado. Si la solución es de mejor calidad
             // se actualiza la solución y se retorna (Alguna mejora).
             reverseFarmsOrderInRoute(route_index, pos_left, pos_right);
+
             long double new_quality = evaluateSolution();
             if(new_quality > old_quality){
                 Utils::debugPrint("2opt: improve quality\n");
