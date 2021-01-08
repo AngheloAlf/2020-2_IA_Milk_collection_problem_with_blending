@@ -84,9 +84,10 @@ bool Route::canRemoveFarm(long position) const{
 
 void Route::addFarm(const Node *farm){
     assert((*farm).getQuality() != '-');
-    nodes.push_back(farm);
 
-    addFarm_updateValues(farm);
+    addFarm_updateValues(nodes.size(), farm);
+
+    nodes.push_back(farm);
     changed = true;
 }
 void Route::addFarm(long position, const Node *farm){
@@ -94,26 +95,47 @@ void Route::addFarm(long position, const Node *farm){
     assert((unsigned long)position <= nodes.size());
     assert((*farm).getQuality() != '-');
 
-    auto iter = nodes.begin() + position;
-    nodes.insert(iter, farm);
+    addFarm_updateValues(position, farm);
 
-    addFarm_updateValues(farm);
+    nodes.insert(nodes.begin() + position, farm);
+
     changed = true;
 }
 
 void Route::removeFarm(long position){
+    assert(!nodes.empty());
     assert(position >= 0);
     assert((unsigned long)position < nodes.size());
 
-    auto iter = nodes.begin() + position;
-
     removeFarm_updateValues(position);
 
-    nodes.erase(iter);
+    nodes.erase(nodes.begin() + position);
     changed = true;
 }
 void Route::reverseFarmsOrder(long left, long right){
+    assert(left >= 0);
+    assert(static_cast<unsigned long>(right) < nodes.size());
+    assert(left < right);
+
+    bool isnt_first = left > 0;
+    bool isnt_past_last = static_cast<unsigned long>(right)+1 < nodes.size();
+
+    if(isnt_first){
+        distanceTraveled -= (*nodes.at(left-1)).cachedDistance(*nodes.at(left));
+    }
+    if(isnt_past_last){
+        distanceTraveled -= (*nodes.at(right)).cachedDistance(*nodes.at(right+1));
+    }
+
     std::reverse(nodes.begin() + left, nodes.begin() + right);
+
+    if(isnt_first){
+        distanceTraveled -= (*nodes.at(left-1)).cachedDistance(*nodes.at(left));
+    }
+    if(isnt_past_last){
+        distanceTraveled -= (*nodes.at(right)).cachedDistance(*nodes.at(right+1));
+    }
+
     changed = true;
 }
 
@@ -123,7 +145,7 @@ void Route::setFarm(long position, const Node *farm){
     assert((*farm).getQuality() != '-');
 
     removeFarm_updateValues(position);
-    addFarm_updateValues(farm);
+    addFarm_updateValues(position, farm);
 
     nodes[position] = farm;
 
@@ -152,27 +174,14 @@ long double Route::evaluateRoute(const Node *initial_node){
     if(!changed){
         return quality;
     }
-    long double distance_penalty = 0;
 
-    const auto &current_milk_type = getMilkTypeInfo();
+    long double profit_percentage = getMilkTypeInfo().getMilkProfit();
 
-    long double profit_percentage = current_milk_type.getMilkProfit();
-    /*long quota = current_milk_type.getMilkQuota();
-    // Restricción: Se debe superar la cuota mínima de la planta.
-    if(milkAmount < quota){
-        return 0;
-    }*/
-
-    // Restricción: Un camión sale de la planta procesadora y vuelve a ella al final del día.
-    const Node *prev_node = initial_node;
-    for(const auto &node_ptr: nodes){
-        distance_penalty += (*node_ptr).cachedDistance(*prev_node);
-        prev_node = node_ptr;
-    }
-    distance_penalty += (*prev_node).cachedDistance(*initial_node);
+    long double distance_penalty = (*initial_node).cachedDistance(*nodes.front());
+    distance_penalty += (*nodes.back()).cachedDistance(*initial_node);
 
     changed = false;
-    quality = milkAmount * profit_percentage - distance_penalty;
+    quality = milkAmount * profit_percentage - (distanceTraveled + distance_penalty);
     //assert(!std::isnan(quality));
     //assert(!std::isinf(quality));
     //assert(std::isfinite(quality));
@@ -223,7 +232,21 @@ char Route::recalculateMilkType() const{
     return 0;
 }
 
-void Route::addFarm_updateValues(const Node *farm){
+void Route::addFarm_updateValues(long position, const Node *farm){
+    if(!nodes.empty()){
+        bool isnt_first = position > 0;
+        bool isnt_past_last = static_cast<unsigned long>(position) < nodes.size();
+        if(isnt_first){
+            distanceTraveled += (*nodes.at(position-1)).cachedDistance(*farm);
+        }
+        if(isnt_past_last){
+            distanceTraveled += (*farm).cachedDistance(*nodes.at(position));
+        }
+        if(isnt_first && isnt_past_last){
+            distanceTraveled -= (*nodes.at(position-1)).cachedDistance(*nodes.at(position));
+        }
+    }
+
     capacityLeft -= (*farm).getProduced();
     milkAmount += (*farm).getProduced();
 
@@ -236,6 +259,20 @@ void Route::addFarm_updateValues(const Node *farm){
 }
 void Route::removeFarm_updateValues(long position){
     const Node *node = nodes.at(position);
+
+    if(nodes.size() > 1){
+        bool isnt_first = position > 0;
+        bool isnt_past_last = static_cast<unsigned long>(position)+1 < nodes.size();
+        if(isnt_first){
+            distanceTraveled -= (*nodes.at(position-1)).cachedDistance(*node);
+        }
+        if(isnt_past_last){
+            distanceTraveled -= (*node).cachedDistance(*nodes.at(position+1));
+        }
+        if(isnt_first && isnt_past_last){
+            distanceTraveled += (*nodes.at(position-1)).cachedDistance(*nodes.at(position+1));
+        }
+    }
 
     capacityLeft += (*node).getProduced();
     milkAmount -= (*node).getProduced();

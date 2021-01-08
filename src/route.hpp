@@ -71,6 +71,7 @@ private:
     std::vector<unsigned long> nodes_counter;
     const MilkTypesList *milkList;
     long double quality = 0;
+    long double distanceTraveled = 0;
     long truckId;
     long capacityLeft;
     long milkAmount;
@@ -80,7 +81,7 @@ private:
     [[nodiscard]]
     char recalculateMilkType() const;
 
-    void addFarm_updateValues(const Node *farm);
+    void addFarm_updateValues(long position, const Node *farm);
     void removeFarm_updateValues(long position);
 };
 
