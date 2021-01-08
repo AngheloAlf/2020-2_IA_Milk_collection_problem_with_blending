@@ -29,18 +29,22 @@ public:
 
     void setTruck(const Truck &truck);
 
-    /// Agrega la granja a la ruta.
-    /// Retorna `false` si al agregar la granja se está violando alguna restricción (capacidad del camión, etc...).
+    /// Retorna `false` si al agregar la granja se estaría violando alguna restricción (capacidad del camión, etc...).
     /// Retorna `true` en caso contrario.
-    /// En ambos casos la granja es agregada a la ruta.
-    bool addFarm(const Node *farm);
+    [[nodiscard]]
+    bool canAddFarm(const Node *farm) const;
+    /// Retorna `false` si al remover la granja se estaría violando alguna restricción (no se cumplen las cuotas, etc...).
+    /// Retorna `true` en caso contrario.
+    [[nodiscard]]
+    bool canRemoveFarm(long position) const;
+
+    /// Agrega la granja a la ruta.
+    void addFarm(const Node *farm);
     /// Agrega la granja a la ruta en la posición especificada.
-    bool addFarm(long position, const Node *farm);
+    void addFarm(long position, const Node *farm);
 
     /// Remueve la granja de la posición especificada de esta ruta.
-    /// Retorna `false` si al remover la granja se está violando alguna restricción (no se cumplen las cuotas, etc...).
-    /// Retorna `true` en caso contrario.
-    bool removeFarm(long position);
+    void removeFarm(long position);
 
     void reverseFarmsOrder(long left, long right);
 

@@ -115,12 +115,18 @@ bool Solution::isFeasible() const{
     return !std::any_of(quotas_aux.begin(), quotas_aux.end(), [](const auto &q){ return q > 0; });
 }
 
-
-bool Solution::addFarmToRoute(long route_index, long position, const Node *farm){
-    return routes.at(route_index).addFarm(position, farm);
+bool Solution::canAddFarmToRoute(long route_index, const Node *farm) const{
+    return routes.at(route_index).canAddFarm(farm);
 }
-bool Solution::removeFarmFromRoute(long route_index, long position){
-    return routes.at(route_index).removeFarm(position);
+bool Solution::canRemoveFarmFromRoute(long route_index, long position) const{
+    return routes.at(route_index).canRemoveFarm(position);
+}
+
+void Solution::addFarmToRoute(long route_index, long position, const Node *farm){
+    routes.at(route_index).addFarm(position, farm);
+}
+void Solution::removeFarmFromRoute(long route_index, long position){
+    routes.at(route_index).removeFarm(position);
 }
 void Solution::reverseFarmsOrderInRoute(long route_index, long left, long right){
     routes.at(route_index).reverseFarmsOrder(left, right);
@@ -335,8 +341,9 @@ bool Solution::movement_removeOneNode(){
 
         for(const long &pos: order_of_selected_nodes){
             const Node *node = nodes_list.at(pos);
-            bool removed_without_problems = alternative.removeFarmFromRoute(route_index, pos);
-            if(removed_without_problems){
+            bool can_be_removed_without_problems = alternative.canRemoveFarmFromRoute(route_index, pos);
+            if(can_be_removed_without_problems){
+                alternative.removeFarmFromRoute(route_index, pos);
                 if(!was_feasible){
                     bool capacities_improved = (*this).didCapacitiesLeftImproved(route_index, route);
                     bool quotas_improved = alternative.didQuotasDiffImproved(quotas_diff);
@@ -353,8 +360,8 @@ bool Solution::movement_removeOneNode(){
                     *this = alternative;
                     return true;
                 }
+                alternative.addFarmToRoute(route_index, pos, node);
             }
-            alternative.addFarmToRoute(route_index, pos, node);
         }
     }
 
@@ -386,8 +393,9 @@ bool Solution::tryMoveNodeBetweenRoutes(const Solution &original_solution, long 
         }
 
         // Se saca el nodo de la ruta de la cual proviene.
-        bool removed_without_problems = removeFarmFromRoute(src_route_index, src_nodes_index);
-        if(removed_without_problems){
+        bool can_be_removed_without_problems = canRemoveFarmFromRoute(src_route_index, src_nodes_index);
+        if(can_be_removed_without_problems){
+            removeFarmFromRoute(src_route_index, src_nodes_index);
             const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
 
             // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
@@ -398,9 +406,9 @@ bool Solution::tryMoveNodeBetweenRoutes(const Solution &original_solution, long 
             for(const long &dst_nodes_index: order_of_selected_nodes_dst){
                 // Se agrega el nodo a la ruta de destino en la posición correspondiente
                 // y calcular la calidad de esta nueva solución.
-                bool added_without_problems = addFarmToRoute(dst_route_index, dst_nodes_index, node_src);
-
-                if(added_without_problems){
+                bool can_be_added_without_problems = canAddFarmToRoute(dst_route_index, node_src);
+                if(can_be_added_without_problems){
+                    addFarmToRoute(dst_route_index, dst_nodes_index, node_src);
                     if(!was_feasible){
                         bool capacities_improved = original_solution.didCapacitiesLeftImproved(src_route_index, src_route, dst_route);
                         bool quotas_improved = didQuotasDiffImproved(quotas_diff);
@@ -417,16 +425,15 @@ bool Solution::tryMoveNodeBetweenRoutes(const Solution &original_solution, long 
                         Utils::debugPrint("\tNode: %ld\n\tTruck src: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                         return true;
                     }
+                    // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
+                    // esa posición y reintentamos en la siguiente posición.
+                    removeFarmFromRoute(dst_route_index, dst_nodes_index);
                 }
-                // Si la nueva calidad no supera la calidad anterior, quitamos el nodo de
-                // esa posición y reintentamos en la siguiente posición.
-                removeFarmFromRoute(dst_route_index, dst_nodes_index);
             }
+            // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
+            // el nodo en su ruta original, y en su posición original.
+            addFarmToRoute(src_route_index, src_nodes_index, node_src);
         }
-
-        // Insertar este nodo en esta ruta destino no dio mejoras, por lo que recolocamos
-        // el nodo en su ruta original, y en su posición original.
-        addFarmToRoute(src_route_index, src_nodes_index, node_src);
     }
 
     return false;

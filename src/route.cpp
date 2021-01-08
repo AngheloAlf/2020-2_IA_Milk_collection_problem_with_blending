@@ -53,7 +53,32 @@ void Route::setTruck(const Truck &truck){
     this->capacityLeft = truck.getCapacity();
 }
 
-bool Route::addFarm(const Node *farm){
+bool Route::canAddFarm(const Node *farm) const{
+    assert((*farm).getQuality() != '-');
+    // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
+    if((*farm).getQuality() > milkType){
+        return false;
+    }
+    // Restricción: No se debe superar la capacidad máxima de los camiones.
+    return capacityLeft - (*farm).getProduced() >= 0;
+}
+
+bool Route::canRemoveFarm(long position) const{
+    assert(position >= 0);
+    assert((unsigned long)position < nodes.size());
+
+    const Node *node = nodes.at(position);
+
+    if(nodes_counter[(*node).getQuality()-'A'] == 1){
+        return false;
+    }
+
+    // Restricción: El total de la leche debe superar la cuota mínima de la planta procesadora.
+    long quota = getMilkTypeInfo().getMilkQuota();
+    return (milkAmount - (*node).getProduced() >= quota);
+}
+
+void Route::addFarm(const Node *farm){
     assert((*farm).getQuality() != '-');
     nodes.push_back(farm);
     capacityLeft -= (*farm).getProduced();
@@ -62,21 +87,12 @@ bool Route::addFarm(const Node *farm){
     nodes_counter[(*farm).getQuality()-'A'] += 1;
 
     // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
-    bool got_worse = false;
     if((*farm).getQuality() > milkType){
         milkType = (*farm).getQuality();
-        got_worse = true;
     }
     changed = true;
-
-    if(got_worse){
-        return false;
-    }
-
-    // Restricción: No se debe superar la capacidad máxima de los camiones.
-    return capacityLeft - (*farm).getProduced() >= 0;
 }
-bool Route::addFarm(long position, const Node *farm){
+void Route::addFarm(long position, const Node *farm){
     assert(position >= 0);
     assert((unsigned long)position <= nodes.size());
     assert((*farm).getQuality() != '-');
@@ -89,22 +105,13 @@ bool Route::addFarm(long position, const Node *farm){
     nodes_counter[(*farm).getQuality()-'A'] += 1;
 
     // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
-    bool got_worse = false;
     if((*farm).getQuality() > milkType){
         milkType = (*farm).getQuality();
-        got_worse = true;
     }
     changed = true;
-
-    if(got_worse){
-        return false;
-    }
-
-    // Restricción: No se debe superar la capacidad máxima de los camiones.
-    return capacityLeft - (*farm).getProduced() >= 0;
 }
 
-bool Route::removeFarm(long position){
+void Route::removeFarm(long position){
     assert(position >= 0);
     assert((unsigned long)position < nodes.size());
 
@@ -123,10 +130,6 @@ bool Route::removeFarm(long position){
 
     nodes.erase(iter);
     changed = true;
-
-    // Restricción: El total de la leche debe superar la cuota mínima de la planta procesadora.
-    long quota = (*milkList).at(milkType).getMilkQuota();
-    return (milkAmount >= quota);
 }
 void Route::reverseFarmsOrder(long left, long right){
     std::reverse(nodes.begin() + left, nodes.begin() + right);

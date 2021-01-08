@@ -25,8 +25,13 @@ public:
     [[nodiscard]]
     bool isFeasible() const;
 
-    bool addFarmToRoute(long route_index, long position, const Node *farm);
-    bool removeFarmFromRoute(long route_index, long position);
+    [[nodiscard]]
+    bool canAddFarmToRoute(long route_index, const Node *farm) const;
+    [[nodiscard]]
+    bool canRemoveFarmFromRoute(long route_index, long position) const;
+
+    void addFarmToRoute(long route_index, long position, const Node *farm);
+    void removeFarmFromRoute(long route_index, long position);
     void reverseFarmsOrderInRoute(long route_index, long left, long right);
 
     [[nodiscard]]
