@@ -8,7 +8,7 @@
 Route::Route(const MilkTypesList *milk_list, char milk_type, unsigned long nodes_amount, unsigned long milk_types_amount)
 : milkList(milk_list), truckId(0), capacityLeft(0), milkAmount(0), milkType(milk_type){
     nodes.reserve(nodes_amount);
-    nodes_counter.assign(milk_types_amount, 0);
+    nodesCounter.assign(milk_types_amount, 0);
 }
 
 void Route::print(bool newline) const{
@@ -73,7 +73,7 @@ bool Route::canRemoveFarm(long position) const{
 
     const Node *node = nodes.at(position);
 
-    if(nodes_counter[(*node).getQuality()-'A'] == 1){
+    if(nodesCounter[(*node).getQuality()-'A'] == 1){
         return false;
     }
 
@@ -135,7 +135,7 @@ void Route::setFarm(long position, const Node *farm){
 }
 
 bool Route::doesFulfilQuota() const{
-    return milkAmount >= getMilkTypeInfo().getMilkQuota(); 
+    return milkAmount >= getMilkTypeInfo().getMilkQuota();
 }
 bool Route::isFeasible() const{
     if(capacityLeft < 0){
@@ -148,10 +148,7 @@ bool Route::isFeasible() const{
 }
 
 long double Route::evaluateRoute(const Node *initial_node){
-    // Restricción: No se debe superar la capacidad máxima de los camiones.
-    if(capacityLeft < 0){
-        return 0;
-    }
+
     // Si la ruta no ha cambiado, evitamos recalcular y usamos el valor almacenado.
     if(!changed){
         return quality;
@@ -169,13 +166,19 @@ long double Route::evaluateRoute(const Node *initial_node){
 
     changed = false;
     quality = milkAmount * profit_percentage - distance_penalty;
+
+    // Penalizar la calidad de la ruta si es infactible.
+    if(capacityLeft < 0){
+        quality += capacityLeft;
+    }
+    if(!doesFulfilQuota()){
+        quality -= getMilkTypeInfo().getMilkQuota() - milkAmount;
+    }
+
     //assert(!std::isnan(quality));
     //assert(!std::isinf(quality));
     //assert(std::isfinite(quality));
-    if(!isFeasible()){
-        // Penalizar la calidad de la ruta si es infactible.
-        quality *= 0.3;
-    }
+
     return quality;
 }
 
@@ -210,7 +213,7 @@ long double Route::calculateMilkProfits() const{
 char Route::recalculateMilkType() const{
     char i = milkType;
     for(--i; i >= 'A'; --i){
-        if(nodes_counter[i-'A'] > 0){
+        if(nodesCounter[i-'A'] > 0){
             return i;
             break;
         }
@@ -222,7 +225,7 @@ void Route::addFarm_updateValues(const Node *farm){
     capacityLeft -= (*farm).getProduced();
     milkAmount += (*farm).getProduced();
 
-    nodes_counter[(*farm).getQuality()-'A'] += 1;
+    nodesCounter[(*farm).getQuality()-'A'] += 1;
 
     // Restricción: Al mezclar la leche su calidad queda como la mas baja entre las mezcladas.
     if((*farm).getQuality() > milkType){
@@ -235,10 +238,10 @@ void Route::removeFarm_updateValues(long position){
     capacityLeft += (*node).getProduced();
     milkAmount -= (*node).getProduced();
 
-    nodes_counter[(*node).getQuality()-'A'] -= 1;
+    nodesCounter[(*node).getQuality()-'A'] -= 1;
 
     // Si la calidad de la leche de esa granja es la peor, es posible que el conjunto mejore al removerla.
-    if((*node).getQuality() == milkType && nodes_counter[(*node).getQuality()-'A'] == 0){
+    if((*node).getQuality() == milkType && nodesCounter[(*node).getQuality()-'A'] == 0){
         milkType = recalculateMilkType();
     }
 }

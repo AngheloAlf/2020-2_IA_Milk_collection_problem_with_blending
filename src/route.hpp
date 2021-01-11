@@ -68,7 +68,7 @@ public:
 
 private:
     std::vector<const Node *> nodes;
-    std::vector<unsigned long> nodes_counter;
+    std::vector<unsigned long> nodesCounter;
     const MilkTypesList *milkList;
     long double quality = 0;
     long truckId;

@@ -47,19 +47,13 @@ Solution Solution::initialSolution(const Instance *instance){
     const long tol_change = 10;
     long truck_counter = 0;
 
-    /*print(true);
-
-    for(auto &asdf: farms_list){
-        asdf.print(true);
-    }*/
 
     while(!farms_list.empty()){
         auto selected_farm_iter = Utils::selectRandomly(farms_list);
         assert(selected_farm_iter != farms_list.end());
         Node *selected_farm = *selected_farm_iter;
 
-        for(unsigned long i = 0; i < (*instance).getTrucksList().size(); ++i){
-            Route &route = sol.routes.at(i);
+        for(Route &route: sol.routes){
             if(route.getCapacityLeft() - (*selected_farm).getProduced() >= TOL && route.getMilkType() == (*selected_farm).getQuality()){
                 route.addFarm(selected_farm);
                 farms_list.erase(selected_farm_iter);
@@ -237,32 +231,30 @@ Solution Solution::hillClimbing(long K) const{
     std::vector<long> order_of_movements(Utils::range(movements_amount));
 
     long i = 0;
-    while(i < K){
-        bool is_better_solution = false;
-        Utils::randomizeVector(order_of_movements);
+    bool is_better_solution = true;
+    while(is_better_solution && i < K){
+        is_better_solution = false;
+        long double current_quality = solution.evaluateSolution();
 
+        Utils::randomizeVector(order_of_movements);
         for(int j = 0; !is_better_solution && j < movements_amount && i < K; ++j, ++i){
             long movement = order_of_movements[j];
             switch (movement){
             case 0:
-                is_better_solution = solution.movement_moveNodeBetweenRoutes();
+                is_better_solution = solution.movement_moveNodeBetweenRoutes(current_quality);
                 break;
             case 1:
-                is_better_solution = solution.movement_2OptIntraRoute();
+                is_better_solution = solution.movement_2OptIntraRoute(current_quality);
                 break;
             case 2:
-                is_better_solution = solution.movement_removeOneNode();
+                is_better_solution = solution.movement_removeOneNode(current_quality);
                 break;
             case 3:
-                is_better_solution = solution.movement_interchangeNodesBetweenRoutes();
+                is_better_solution = solution.movement_interchangeNodesBetweenRoutes(current_quality);
                 break;
             }
 
             if(Utils::debugPrintingEnabled) Utils::debugPrint("i: %5li - quality: %Lf\n\n", i, solution.evaluateSolution());
-        }
-
-        if(!is_better_solution){
-            break;
         }
     }
     Utils::debugPrint("\n");
@@ -272,8 +264,7 @@ Solution Solution::hillClimbing(long K) const{
 
 
 // Mover un nodo de una ruta a las demás rutas.
-bool Solution::movement_moveNodeBetweenRoutes(){
-    long double old_quality = evaluateSolution();
+bool Solution::movement_moveNodeBetweenRoutes(long double old_quality){
     auto quotas_diff(getQuotasDiff());
     bool was_feasible = isFeasible();
 
@@ -307,7 +298,7 @@ bool Solution::movement_moveNodeBetweenRoutes(){
                 const Node *node_src = nodes_list_src.at(src_nodes_index);
 
                 // Evitar agregar el nodo a la ruta si este sobrecarga al camión.
-                if(dst_route.getCapacityLeft() - (*node_src).getProduced() < 0){
+                if(dst_route.getCapacityLeft() < (*node_src).getProduced()){
                     continue;
                 }
 
@@ -318,11 +309,10 @@ bool Solution::movement_moveNodeBetweenRoutes(){
                 }
 
                 removeFarmFromRoute(src_route_index, src_nodes_index);
-                const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
 
                 // Randomizar el orden en que se insertarán los nodos en la ruta de destino,
                 // sin tener que randomizar el vector original.
-                std::vector<long> order_of_selected_nodes_dst(Utils::range(nodes_list_dst.size()));
+                std::vector<long> order_of_selected_nodes_dst(Utils::range(dst_route.getNodes().size()));
                 Utils::randomizeVector(order_of_selected_nodes_dst);
                 for(const long &dst_nodes_index: order_of_selected_nodes_dst){
                     bool can_be_added_without_problems = canAddFarmToRoute(dst_route_index, node_src);
@@ -336,8 +326,7 @@ bool Solution::movement_moveNodeBetweenRoutes(){
 
                     if(!was_feasible){
                         bool capacities_improved = didCapacitiesLeftImproved(src_old_capacity_left, src_route.getCapacityLeft(), dst_route.getCapacityLeft());
-                        bool quotas_improved = didQuotasDiffImproved(quotas_diff);
-                        if(capacities_improved || quotas_improved){
+                        if(capacities_improved || didQuotasDiffImproved(quotas_diff)){
                             Utils::debugPrint("Move: improve feasibility. ");
                             Utils::debugPrint("\tNode: %ld \tTrucksrc: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                             return true;
@@ -348,6 +337,7 @@ bool Solution::movement_moveNodeBetweenRoutes(){
                     if(new_quality > old_quality){
                         Utils::debugPrint("Move: improve quality\n");
                         Utils::debugPrint("\tNode: %ld\n\tTrucksrc: %ld\n\tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
+                        // old_quality = new_quality;
                         return true;
                     }
 
@@ -367,14 +357,11 @@ bool Solution::movement_moveNodeBetweenRoutes(){
 }
 
 // Movimiento 2-opt de la ruta consigo misma.
-bool Solution::movement_2OptIntraRoute(){
-    long double old_quality = evaluateSolution();
-
+bool Solution::movement_2OptIntraRoute(long double old_quality){
     // Randomizar el orden en que se seleccionarán las rutas (route);
     // sin tener que randomizar el vector original.
     std::vector<long> order_of_selected_routes(Utils::range(routes.size()));
     Utils::randomizeVector(order_of_selected_routes);
-
     for(const long &route_index: order_of_selected_routes){
         const std::vector<const Node *> &nodes_list = routes.at(route_index).getNodes();
 
@@ -411,8 +398,7 @@ bool Solution::movement_2OptIntraRoute(){
     return false;
 }
 
-bool Solution::movement_removeOneNode(){
-    long double old_quality = evaluateSolution();
+bool Solution::movement_removeOneNode(long double old_quality){
     auto quotas_diff(getQuotasDiff());
     bool was_feasible = isFeasible();
 
@@ -439,8 +425,7 @@ bool Solution::movement_removeOneNode(){
 
             if(!was_feasible){
                 bool capacities_improved = didCapacitiesLeftImproved(old_capacity_left, route.getCapacityLeft());
-                bool quotas_improved = didQuotasDiffImproved(quotas_diff);
-                if(capacities_improved || quotas_improved){
+                if(capacities_improved || didQuotasDiffImproved(quotas_diff)){
                     Utils::debugPrint("Remove: improve feasibility. ");
                     Utils::debugPrint("\tNode: %ld \tTruck: %ld\n", (*node).getId(), route.getTruckId());
                     return true;
@@ -460,8 +445,7 @@ bool Solution::movement_removeOneNode(){
     return false;
 }
 
-bool Solution::movement_interchangeNodesBetweenRoutes(){
-    long double old_quality = evaluateSolution();
+bool Solution::movement_interchangeNodesBetweenRoutes(long double old_quality){
     auto quotas_diff(getQuotasDiff());
     bool was_feasible = isFeasible();
 
@@ -487,6 +471,10 @@ bool Solution::movement_interchangeNodesBetweenRoutes(){
             Utils::randomizeVector(order_of_selected_routes_dst);
             for(const long &dst_route_index: order_of_selected_routes_dst){
                 const Route &dst_route = routes.at(dst_route_index);
+                if(!dst_route.isFarmMilkCompatibleWithCurrentMilkType(node_src)){
+                    continue;
+                }
+
                 long dst_old_capacity_left = dst_route.getCapacityLeft();
                 const std::vector<const Node *> &nodes_list_dst = dst_route.getNodes();
 
@@ -497,7 +485,7 @@ bool Solution::movement_interchangeNodesBetweenRoutes(){
                 for(const long &dst_nodes_index: order_of_selected_nodes_dst){
                     const Node *node_dst = nodes_list_dst.at(dst_nodes_index);
 
-                    bool interchange_compatible = src_route.isFarmMilkCompatibleWithCurrentMilkType(node_dst) && dst_route.isFarmMilkCompatibleWithCurrentMilkType(node_src);
+                    bool interchange_compatible = src_route.isFarmMilkCompatibleWithCurrentMilkType(node_dst);
                     if(!interchange_compatible){
                         continue;
                     }
@@ -507,8 +495,7 @@ bool Solution::movement_interchangeNodesBetweenRoutes(){
 
                     if(!was_feasible){
                         bool capacities_improved = didCapacitiesLeftImproved(src_old_capacity_left, src_route.getCapacityLeft(), dst_old_capacity_left, dst_route.getCapacityLeft());
-                        bool quotas_improved = didQuotasDiffImproved(quotas_diff);
-                        if(capacities_improved || quotas_improved){
+                        if(capacities_improved || didQuotasDiffImproved(quotas_diff)){
                             Utils::debugPrint("Interchange: improve feasibility. ");
                             Utils::debugPrint("\tNode: %ld \tTrucksrc: %ld \tTruckdst: %ld\n", (*node_src).getId(), src_route.getTruckId(), dst_route.getTruckId());
                             return true;

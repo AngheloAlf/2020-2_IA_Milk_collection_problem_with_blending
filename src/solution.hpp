@@ -63,14 +63,14 @@ private:
     // Movimientos para hill climbing.
     // Mover un nodo de una ruta a las demás rutas.
     [[nodiscard]]
-    bool movement_moveNodeBetweenRoutes();
+    bool movement_moveNodeBetweenRoutes(long double old_quality);
     // Movimiento 2-opt de la ruta consigo misma.
     [[nodiscard]]
-    bool movement_2OptIntraRoute();
+    bool movement_2OptIntraRoute(long double old_quality);
     [[nodiscard]]
-    bool movement_removeOneNode();
+    bool movement_removeOneNode(long double old_quality);
     [[nodiscard]]
-    bool movement_interchangeNodesBetweenRoutes();
+    bool movement_interchangeNodesBetweenRoutes(long double old_quality);
 };
 
 #endif
