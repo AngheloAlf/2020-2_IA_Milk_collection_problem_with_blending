@@ -55,7 +55,7 @@ void printResults(const Instance &inst, Solution &optimal){
 }
 
 
-int main(int argc, char **argv){
+int main(int argc, const char **argv){
     if(argc < 3){
         fprintf(stderr, "Faltan argumentos.\n");
         fprintf(stderr, "Ejecución:\n");
@@ -66,7 +66,7 @@ int main(int argc, char **argv){
     auto time_program_start = std::chrono::steady_clock::now();
     Utils::debugPrintingEnabled = false;
 
-    char *filename = argv[1];
+    const char *filename = argv[1];
     long K = strtol(argv[2], nullptr, BASE10);
     if(argc > 3){
         Utils::debugPrintingEnabled = std::string(argv[3]) == "true"; 

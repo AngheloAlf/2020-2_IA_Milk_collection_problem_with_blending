@@ -21,6 +21,4 @@ private:
     long capacity; // Capacidad total de este camión.
 };
 
-
-
 #endif

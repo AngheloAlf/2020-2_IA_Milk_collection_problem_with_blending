@@ -16,7 +16,7 @@
  */
 class Instance{
 public:
-    Instance(char *filename);
+    Instance(const char *filename);
     Instance(Instance &other) = delete;
     Instance(Instance &&other) = delete;
     ~Instance();

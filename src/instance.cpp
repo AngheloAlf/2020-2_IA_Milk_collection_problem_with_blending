@@ -7,9 +7,13 @@
 #include "utils.hpp"
 
 
-Instance::Instance(char *filename){
+Instance::Instance(const char *filename){
     FILE *arch = fopen(filename, "r");
     assert(arch != nullptr);
+    if(arch == nullptr){
+        fprintf(stderr, "No se encontró el archivo '%s'.\n", filename);
+        exit(-1);
+    }
 
     readTrucks(arch);
     readMilk(arch);
