@@ -41,37 +41,26 @@ Solution Solution::initialSolution(const Instance *instance){
     for(auto iter = (*instance).getNodesList().begin()+1; iter < (*instance).getNodesList().end(); ++iter){
         farms_list.push_back((*iter).get());
     }
+
     Utils::randomizeVector(farms_list);
-
-    long TOL = 0;
-    const long tol_change = 10;
-    long truck_counter = 0;
-
-
     while(!farms_list.empty()){
         auto selected_farm_iter = Utils::selectRandomly(farms_list);
         assert(selected_farm_iter != farms_list.end());
         Node *selected_farm = *selected_farm_iter;
 
         for(Route &route: sol.routes){
-            if(route.getCapacityLeft() - (*selected_farm).getProduced() >= TOL && route.getMilkType() == (*selected_farm).getQuality()){
-                route.addFarm(selected_farm);
-                farms_list.erase(selected_farm_iter);
-                ++truck_counter;
-
-                if(farms_list.empty()) break;
-
-                selected_farm_iter = Utils::selectRandomly(farms_list);
-                assert(selected_farm_iter != farms_list.end());
-                selected_farm = *selected_farm_iter;
+            if(route.getMilkType() != (*selected_farm).getQuality()){
+                continue;
             }
-        }
+            route.addFarm(selected_farm);
+            farms_list.erase(selected_farm_iter);
 
-        if(truck_counter == 0){
-            TOL -= tol_change;
-            continue;
+            if(farms_list.empty()) break;
+
+            selected_farm_iter = Utils::selectRandomly(farms_list);
+            assert(selected_farm_iter != farms_list.end());
+            selected_farm = *selected_farm_iter;
         }
-        truck_counter = 0;
     }
 
     return sol;

@@ -38,6 +38,18 @@ Donde `K` es la cantidad máxima de iteraciones a realizar.
 ./MCPwB.elf instances/a76.txt 1000
 ```
 
+### Debug print
+
+Existe la posibilidad de imprimir por pantalla información extra durante la ejecución. Está pensada principalmente para ser usada durante el desarrollo.
+
+Para poder ver esta información, se debe pasar un tercer parámetro al momento de ejecutar el programa, el cual debe ser 'true'.
+
+Ejemplo:
+
+```bash
+./MCPwB.elf instances/a36.txt 1000 true
+```
+
 ### Script para probar todas las instancias
 
 Se puede usar el script `test_instances.sh` para probar el programa con todas las instancias disponibles en la carpeta `instances/`. Estas son ejecutadas de forma secuencial.
